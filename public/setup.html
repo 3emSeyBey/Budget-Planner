@@ -70,9 +70,14 @@
             </ul>
         </div>
         
-        <button class="btn btn-setup w-100" onclick="setupDatabase()">
-            <i class="fas fa-cog me-2"></i>Initialize Database
-        </button>
+        <div class="d-grid gap-2">
+            <button class="btn btn-setup" onclick="testDatabase()">
+                <i class="fas fa-vial me-2"></i>Test Database Connection
+            </button>
+            <button class="btn btn-setup" onclick="setupDatabase()">
+                <i class="fas fa-cog me-2"></i>Initialize Database
+            </button>
+        </div>
         
         <div id="status" class="status"></div>
         
@@ -84,13 +89,46 @@
     </div>
 
     <script>
+        async function testDatabase() {
+            const status = document.getElementById('status');
+            status.style.display = 'none';
+            
+            try {
+                const response = await fetch('/api/test-db');
+                const result = await response.json();
+                
+                if (result.success) {
+                    status.className = 'status success';
+                    status.innerHTML = `
+                        <i class="fas fa-check-circle me-2"></i>
+                        <strong>Database Test Results:</strong>
+                        <br><strong>Environment:</strong> ${JSON.stringify(result.environment, null, 2)}
+                        <br><strong>Database Status:</strong> ${result.database.status}
+                        ${result.database.error ? `<br><strong>Error:</strong> ${result.database.error}` : ''}
+                    `;
+                } else {
+                    throw new Error(result.message || 'Test failed');
+                }
+            } catch (error) {
+                status.className = 'status error';
+                status.innerHTML = `
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    <strong>Test Failed:</strong> ${error.message}
+                    <br><small>This usually means the DATABASE_URL environment variable is not set correctly.</small>
+                `;
+            }
+            status.style.display = 'block';
+        }
+
         async function setupDatabase() {
-            const button = document.querySelector('.btn-setup');
+            const buttons = document.querySelectorAll('.btn-setup');
             const status = document.getElementById('status');
             
             // Show loading state
-            button.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Setting up database...';
-            button.disabled = true;
+            buttons.forEach(btn => {
+                btn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Setting up database...';
+                btn.disabled = true;
+            });
             status.style.display = 'none';
             
             try {
@@ -109,12 +147,15 @@
                         <i class="fas fa-check-circle me-2"></i>
                         <strong>Success!</strong> ${result.message}
                         <br><small>Database initialized with ${result.statements_executed} statements.</small>
+                        ${result.warnings ? `<br><small><strong>Warnings:</strong> ${result.warnings.join(', ')}</small>` : ''}
                     `;
                     status.style.display = 'block';
                     
-                    // Update button
-                    button.innerHTML = '<i class="fas fa-check me-2"></i>Database Ready';
-                    button.className = 'btn btn-success w-100';
+                    // Update buttons
+                    buttons.forEach(btn => {
+                        btn.innerHTML = '<i class="fas fa-check me-2"></i>Database Ready';
+                        btn.className = 'btn btn-success';
+                    });
                     
                     // Redirect to main app after 3 seconds
                     setTimeout(() => {
@@ -132,9 +173,13 @@
                 `;
                 status.style.display = 'block';
                 
-                // Reset button
-                button.innerHTML = '<i class="fas fa-cog me-2"></i>Initialize Database';
-                button.disabled = false;
+                // Reset buttons
+                buttons.forEach((btn, index) => {
+                    btn.innerHTML = index === 0 ? 
+                        '<i class="fas fa-vial me-2"></i>Test Database Connection' :
+                        '<i class="fas fa-cog me-2"></i>Initialize Database';
+                    btn.disabled = false;
+                });
             }
         }
     </script>

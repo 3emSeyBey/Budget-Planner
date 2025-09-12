@@ -95,6 +95,8 @@ Based on your spreadsheet, the app manages these 11 categories:
    - Use `lib/database-schema-sqlite.sql` for schema
 
 3. **Deploy to Vercel**
+
+   **Option A: Using Vercel CLI (Recommended)**
    ```bash
    # Install Vercel CLI
    npm install -g vercel
@@ -105,16 +107,25 @@ Based on your spreadsheet, the app manages these 11 categories:
    
    # Set database environment variable
    vercel env add DATABASE_URL
-   # Paste your database connection string
+   # Paste your database connection string when prompted
+   # Example: mysql://username:password@host:port/database_name?ssl={"rejectUnauthorized":true}
    
    # Deploy to production
    vercel --prod
    ```
 
+   **Option B: Using Vercel Dashboard**
+   - Go to [vercel.com/dashboard](https://vercel.com/dashboard)
+   - Click "New Project" and import your repository
+   - Go to Project Settings → Environment Variables
+   - Add `DATABASE_URL` with your database connection string
+   - Select all environments (Production, Preview, Development)
+   - Click "Save"
+
 4. **Initialize Database**
-   - Visit: `https://your-app.vercel.app/api/setup`
-   - Send POST request to initialize database schema
-   - Or use the setup page in your deployed app
+   - Visit: `https://your-app.vercel.app/setup.html`
+   - Click "Initialize Database" button
+   - Or send POST request to: `https://your-app.vercel.app/api/setup`
 
 5. **Access the Application**
    - Open `https://your-app.vercel.app` in your browser
@@ -191,9 +202,10 @@ budget-planner/
 
 ## Technology Stack
 
-- **Backend**: PHP 7.4+ with PDO for database operations
+- **Backend**: Node.js with Vercel serverless functions
 - **Frontend**: HTML5, CSS3, JavaScript (ES6+)
-- **Database**: MySQL 5.7+
+- **Database**: MySQL/PostgreSQL/SQLite (multiple options)
+- **Deployment**: Vercel (serverless)
 - **UI Framework**: Bootstrap 5.3
 - **Charts**: Chart.js 4.4
 - **Icons**: Font Awesome 6.4
@@ -223,6 +235,41 @@ budget-planner/
 ## License
 
 This project is open source and available under the MIT License.
+
+## Troubleshooting
+
+### Common Deployment Issues
+
+1. **Environment Variable "DATABASE_URL" references Secret error**:
+   - **Solution**: Set `DATABASE_URL` directly in Vercel dashboard under Environment Variables
+   - Don't use `@secret_name` references in `vercel.json`
+   - Make sure to select all environments (Production, Preview, Development)
+
+2. **Database Connection Errors**:
+   - Verify your `DATABASE_URL` connection string is correct
+   - Ensure your database allows connections from Vercel's IP ranges
+   - Check if SSL is required (most cloud databases require it)
+   - Test the connection string with a database client
+
+3. **Setup Page Not Working**:
+   - Make sure you've set the `DATABASE_URL` environment variable
+   - Check Vercel function logs for any errors
+   - Try the API endpoint directly: `POST https://your-app.vercel.app/api/setup`
+
+4. **Framework Preset in Vercel**:
+   - Choose **"Other"** as the framework preset
+   - Vercel will automatically detect Node.js from `package.json`
+   - No build command needed
+
+### Getting Help
+
+If you encounter issues:
+
+1. Check the Vercel documentation: [vercel.com/docs](https://vercel.com/docs)
+2. Check your database provider's documentation
+3. Review the function logs in Vercel dashboard
+4. Test API endpoints individually to isolate issues
+5. See `VERCEL_DEPLOYMENT.md` for detailed deployment guide
 
 ## Support
 

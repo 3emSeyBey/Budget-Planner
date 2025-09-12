@@ -20,8 +20,24 @@ module.exports = async (req, res) => {
 
   try {
     if (req.method === 'POST') {
+      // Check if DATABASE_URL is set
+      if (!process.env.DATABASE_URL) {
+        return res.status(500).json({
+          success: false,
+          message: 'DATABASE_URL environment variable is not set. Please configure your database connection in Vercel.'
+        });
+      }
+
       // Read and execute database schema
       const schemaPath = path.join(__dirname, '../lib/database-schema.sql');
+      
+      if (!fs.existsSync(schemaPath)) {
+        return res.status(500).json({
+          success: false,
+          message: 'Database schema file not found. Please check your deployment.'
+        });
+      }
+
       const schema = fs.readFileSync(schemaPath, 'utf8');
       
       // Split SQL into individual statements
@@ -31,13 +47,19 @@ module.exports = async (req, res) => {
         .filter(stmt => stmt.length > 0 && !stmt.startsWith('--'));
       
       let executedStatements = 0;
+      let errors = [];
+      
       for (const statement of statements) {
         try {
           await query(statement);
           executedStatements++;
         } catch (error) {
           // Ignore errors for statements that might already exist
-          if (!error.message.includes('already exists') && !error.message.includes('Duplicate entry')) {
+          if (!error.message.includes('already exists') && 
+              !error.message.includes('Duplicate entry') &&
+              !error.message.includes('Table') && 
+              !error.message.includes('already exists')) {
+            errors.push(error.message);
             console.warn('Schema execution warning:', error.message);
           }
         }
@@ -49,7 +71,8 @@ module.exports = async (req, res) => {
       res.status(200).json({
         success: true,
         message: `Database setup completed. ${executedStatements} statements executed.`,
-        statements_executed: executedStatements
+        statements_executed: executedStatements,
+        warnings: errors.length > 0 ? errors : undefined
       });
     } else {
       res.status(405).json({
@@ -61,7 +84,8 @@ module.exports = async (req, res) => {
     console.error('Setup API Error:', error);
     res.status(500).json({
       success: false,
-      message: error.message
+      message: `Database setup failed: ${error.message}`,
+      details: process.env.NODE_ENV === 'development' ? error.stack : undefined
     });
   }
 };
