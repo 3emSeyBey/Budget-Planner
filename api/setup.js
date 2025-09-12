@@ -56,6 +56,11 @@ module.exports = async (req, res) => {
       console.log('Raw schema length:', schema.length);
       console.log('Schema preview:', schema.substring(0, 200));
       
+      // Initialize error tracking
+      let errors = [];
+      let warnings = [];
+      let executedStatements = 0;
+      
       // First, ensure we're using the correct database
       try {
         const dbName = process.env.DB_NAME || 'test';
@@ -84,8 +89,6 @@ module.exports = async (req, res) => {
         errors.push(`Database permissions test failed: ${testError.message}`);
       }
       
-      let executedStatements = 0;
-      let warnings = [];
       
       for (let i = 0; i < statements.length; i++) {
         const statement = statements[i];
