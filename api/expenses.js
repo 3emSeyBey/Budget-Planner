@@ -31,10 +31,21 @@ module.exports = async (req, res) => {
           const weekDate = req.query.date || new Date().toISOString().split('T')[0];
           data = await expenseTracker.getWeeklyExpenses(weekDate);
           break;
+        case 'range':
+          const startDate = req.query.start;
+          const endDate = req.query.end;
+          if (!startDate || !endDate) {
+            return res.status(400).json({
+              success: false,
+              message: 'Start date and end date are required for range query'
+            });
+          }
+          data = await expenseTracker.getExpensesByDateRange(startDate, endDate);
+          break;
         default:
           return res.status(400).json({
             success: false,
-            message: 'Invalid expense type. Use: current or week'
+            message: 'Invalid expense type. Use: current, week, or range'
           });
       }
       

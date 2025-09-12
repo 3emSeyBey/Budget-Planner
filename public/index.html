@@ -337,77 +337,23 @@
                     </div>
                 </div>
 
-                <!-- Add Expense Form -->
-                <div class="row mb-4">
-                    <div class="col-12">
-                        <div class="card">
-                            <div class="card-header">
-                                <h5 class="mb-0">
-                                    <i class="fas fa-plus-circle me-2"></i>Add New Expense
-                                </h5>
-                            </div>
-                            <div class="card-body">
-                                <form id="expense-form">
-                                    <div class="row">
-                                        <div class="col-md-3 mb-3">
-                                            <label class="form-label">Date</label>
-                                            <input type="date" class="form-control" id="expense-date" required>
-                                        </div>
-                                        <div class="col-md-3 mb-3">
-                                            <label class="form-label">Category</label>
-                                            <select class="form-select" id="expense-category" required>
-                                                <option value="">Select Category</option>
-                                            </select>
-                                        </div>
-                                        <div class="col-md-3 mb-3">
-                                            <label class="form-label">Amount</label>
-                                            <input type="number" class="form-control" id="expense-amount" step="0.01" required>
-                                        </div>
-                                        <div class="col-md-3 mb-3">
-                                            <label class="form-label">Payment Method</label>
-                                            <select class="form-select" id="expense-payment">
-                                                <option value="Cash">Cash</option>
-                                                <option value="GCash">GCash</option>
-                                                <option value="Maya">Maya</option>
-                                                <option value="BPI">BPI</option>
-                                                <option value="CIMB">CIMB</option>
-                                                <option value="UnoBank">UnoBank</option>
-                                                <option value="GoTyme">GoTyme</option>
-                                                <option value="GSave">GSave</option>
-                                                <option value="MayBank">MayBank</option>
-                                                <option value="Cebuana">Cebuana</option>
-                                            </select>
-                                        </div>
-                                    </div>
-                                    <div class="row">
-                                        <div class="col-md-6 mb-3">
-                                            <label class="form-label">Description</label>
-                                            <input type="text" class="form-control" id="expense-description" placeholder="What did you spend on?">
-                                        </div>
-                                        <div class="col-md-6 mb-3">
-                                            <label class="form-label">Location</label>
-                                            <input type="text" class="form-control" id="expense-location" placeholder="Where did you spend?">
-                                        </div>
-                                    </div>
-                                    <button type="submit" class="btn btn-primary">
-                                        <i class="fas fa-plus me-2"></i>Add Expense
-                                    </button>
-                                </form>
-                            </div>
-                        </div>
-                    </div>
-                </div>
 
                 <!-- Expenses List -->
                 <div class="row">
                     <div class="col-12">
                         <div class="card">
                             <div class="card-header d-flex justify-content-between align-items-center">
-                                <h5 class="mb-0">Recent Expenses</h5>
-                                <div class="d-flex gap-2">
-                                    <input type="date" class="form-control form-control-sm" id="expense-date-filter" style="width: auto;">
+                                <h5 class="mb-0">Expenses by Week (Wednesday to Wednesday)</h5>
+                                <div class="d-flex gap-2 align-items-center">
+                                    <label class="form-label mb-0 me-2">Week Starting:</label>
+                                    <input type="date" class="form-control form-control-sm" id="expense-week-start" style="width: auto;">
+                                    <span class="text-muted me-2">to</span>
+                                    <input type="date" class="form-control form-control-sm" id="expense-week-end" style="width: auto;" readonly>
                                     <button class="btn btn-outline-primary btn-sm" id="filter-expenses-btn">
-                                        <i class="fas fa-filter"></i>
+                                        <i class="fas fa-filter me-1"></i>Filter
+                                    </button>
+                                    <button class="btn btn-outline-secondary btn-sm" id="current-week-btn">
+                                        <i class="fas fa-calendar-week me-1"></i>Current Week
                                     </button>
                                 </div>
                             </div>
@@ -416,7 +362,7 @@
                                     <table class="table table-hover" id="expenses-table">
                                         <thead>
                                             <tr>
-                                                <th>Date</th>
+                                                <th>Week Date</th>
                                                 <th>Category</th>
                                                 <th>Description</th>
                                                 <th>Amount</th>

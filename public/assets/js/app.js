@@ -42,10 +42,17 @@ class BudgetPlanner {
             this.addQuickExpense();
         });
 
-        // Expense form
-        document.getElementById('expense-form').addEventListener('submit', (e) => {
-            e.preventDefault();
-            this.addExpense();
+        // Expense date range picker
+        document.getElementById('expense-week-start').addEventListener('change', (e) => {
+            this.updateWeekEndDate(e.target.value);
+        });
+
+        document.getElementById('filter-expenses-btn').addEventListener('click', () => {
+            this.loadExpensesByDateRange();
+        });
+
+        document.getElementById('current-week-btn').addEventListener('click', () => {
+            this.loadCurrentWeekExpenses();
         });
 
         // Budget management
@@ -86,10 +93,6 @@ class BudgetPlanner {
             this.getInsights();
         });
 
-        // Filter expenses
-        document.getElementById('filter-expenses-btn').addEventListener('click', () => {
-            this.filterExpenses();
-        });
 
         // Modal events
         document.getElementById('save-edit-budget').addEventListener('click', () => {
@@ -726,28 +729,38 @@ class BudgetPlanner {
         }
     }
 
-    async addExpense() {
-        const formData = {
-            week_date: document.getElementById('expense-date').value,
-            category_id: document.getElementById('expense-category').value,
-            amount: document.getElementById('expense-amount').value,
-            description: document.getElementById('expense-description').value,
-            payment_method: document.getElementById('expense-payment').value,
-            location: document.getElementById('expense-location').value
-        };
+    updateWeekEndDate(startDate) {
+        if (!startDate) return;
+        
+        const start = new Date(startDate);
+        const end = new Date(start);
+        end.setDate(start.getDate() + 6); // Add 6 days to get the following Tuesday
+        
+        document.getElementById('expense-week-end').value = end.toISOString().split('T')[0];
+    }
 
-        if (!formData.category_id || !formData.amount) {
-            this.showAlert('warning', 'Please fill in all required fields');
+    async loadCurrentWeekExpenses() {
+        const currentWeek = this.getCurrentWeek();
+        document.getElementById('expense-week-start').value = currentWeek;
+        this.updateWeekEndDate(currentWeek);
+        await this.loadExpensesByDateRange();
+    }
+
+    async loadExpensesByDateRange() {
+        const startDate = document.getElementById('expense-week-start').value;
+        const endDate = document.getElementById('expense-week-end').value;
+        
+        if (!startDate || !endDate) {
+            this.showAlert('warning', 'Please select a week starting date');
             return;
         }
 
         try {
-            await this.apiCall('expenses?type=add', 'POST', formData);
-            this.showAlert('success', 'Expense added successfully!');
-            document.getElementById('expense-form').reset();
-            this.loadExpenses();
+            const expenses = await this.apiCall(`expenses?type=range&start=${startDate}&end=${endDate}`);
+            this.displayExpenses(expenses);
         } catch (error) {
-            console.error('Failed to add expense:', error);
+            console.error('Failed to load expenses:', error);
+            this.showAlert('error', 'Failed to load expenses. Please try again.');
         }
     }
 
@@ -948,15 +961,14 @@ class BudgetPlanner {
     }
 
     async loadExpenses() {
-        const weekDate = document.getElementById('expense-date-filter').value || this.currentWeek;
-        
-        try {
-            const expenses = await this.apiCall(`expenses?type=week&date=${weekDate}`);
-            this.displayExpenses(expenses);
-        } catch (error) {
-            console.error('Failed to load expenses:', error);
-            this.showAlert('error', 'Failed to load expenses. Please try again.');
+        // Initialize with current week if no date range is set
+        const startDate = document.getElementById('expense-week-start').value;
+        if (!startDate) {
+            await this.loadCurrentWeekExpenses();
+            return;
         }
+        
+        await this.loadExpensesByDateRange();
     }
 
     displayExpenses(expenses) {
@@ -964,7 +976,7 @@ class BudgetPlanner {
         tbody.innerHTML = '';
 
         if (expenses.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="7" class="text-center text-muted">No expenses found for this week</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="7" class="text-center text-muted">No expenses found for the selected date range</td></tr>';
             return;
         }
 
@@ -1379,9 +1391,6 @@ class BudgetPlanner {
         this.showAlert('info', 'Smart insights feature coming soon!');
     }
 
-    filterExpenses() {
-        this.loadExpenses();
-    }
 
     showAlert(type, message) {
         const alertDiv = document.createElement('div');
