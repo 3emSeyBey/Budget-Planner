@@ -50,6 +50,11 @@ module.exports = async (req, res) => {
         .map(stmt => stmt.replace(/\s+/g, ' ').trim());
       
       console.log(`Found ${statements.length} SQL statements to execute`);
+      console.log('First few statements:', statements.slice(0, 3));
+      
+      // Log the raw schema for debugging
+      console.log('Raw schema length:', schema.length);
+      console.log('Schema preview:', schema.substring(0, 200));
       
       // First, ensure we're using the correct database
       try {
@@ -60,8 +65,26 @@ module.exports = async (req, res) => {
         console.warn('Could not select database, continuing with current database:', dbError.message);
       }
       
+      // Test a simple CREATE TABLE to verify database permissions
+      try {
+        console.log('Testing simple CREATE TABLE...');
+        await query(`
+          CREATE TABLE IF NOT EXISTS test_setup_table (
+            id INT PRIMARY KEY AUTO_INCREMENT,
+            test_field VARCHAR(50)
+          )
+        `);
+        console.log('Simple CREATE TABLE test: SUCCESS');
+        
+        // Clean up test table
+        await query('DROP TABLE IF EXISTS test_setup_table');
+        console.log('Test table cleaned up');
+      } catch (testError) {
+        console.error('Simple CREATE TABLE test failed:', testError.message);
+        errors.push(`Database permissions test failed: ${testError.message}`);
+      }
+      
       let executedStatements = 0;
-      let errors = [];
       let warnings = [];
       
       for (let i = 0; i < statements.length; i++) {

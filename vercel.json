@@ -28,6 +28,10 @@
       "dest": "/api/debug-db.js"
     },
     {
+      "src": "/api/test-sql",
+      "dest": "/api/test-sql.js"
+    },
+    {
       "src": "/api/categories",
       "dest": "/api/categories.js"
     },

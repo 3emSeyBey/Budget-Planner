@@ -84,6 +84,10 @@
             <button class="btn btn-info" onclick="debugDatabase()" style="margin-left: 10px;">
                 <i class="fas fa-bug me-2"></i>Debug Database
             </button>
+            
+            <button class="btn btn-warning" onclick="testSQL()" style="margin-left: 10px;">
+                <i class="fas fa-code me-2"></i>Test SQL Execution
+            </button>
         </div>
         
         <div id="status" class="status"></div>
@@ -264,6 +268,49 @@
                 status.innerHTML = `
                     <i class="fas fa-exclamation-triangle me-2"></i>
                     <strong>Debug Error:</strong> ${error.message}
+                `;
+            }
+            
+            status.style.display = 'block';
+        }
+
+        async function testSQL() {
+            const status = document.getElementById('status');
+            status.style.display = 'none';
+            
+            try {
+                status.className = 'status info';
+                status.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Testing SQL execution...';
+                status.style.display = 'block';
+                
+                const response = await fetch('/api/test-sql', {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    status.className = 'status success';
+                    status.innerHTML = `
+                        <i class="fas fa-check-circle me-2"></i>
+                        <strong>SQL Test Results:</strong><br>
+                        <strong>Connection Test:</strong> ${result.results.connection_test}<br>
+                        <strong>Database Selection:</strong> ${result.results.database_selection}<br>
+                        <strong>CREATE TABLE Test:</strong> ${result.results.simple_create}<br>
+                        <strong>Query Test:</strong> ${result.results.simple_query}<br>
+                        ${result.results.errors && result.results.errors.length > 0 ? `<strong>Errors:</strong> ${result.results.errors.join('<br>')}` : ''}
+                    `;
+                } else {
+                    throw new Error(result.message || 'SQL test failed');
+                }
+            } catch (error) {
+                status.className = 'status error';
+                status.innerHTML = `
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    <strong>SQL Test Error:</strong> ${error.message}
                 `;
             }
             
