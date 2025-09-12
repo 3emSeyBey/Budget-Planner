@@ -12,8 +12,44 @@
   ],
   "routes": [
     {
-      "src": "/api/(.*)",
-      "dest": "/api/$1"
+      "src": "/api/health",
+      "dest": "/api/health.js"
+    },
+    {
+      "src": "/api/test-db",
+      "dest": "/api/test-db.js"
+    },
+    {
+      "src": "/api/setup",
+      "dest": "/api/setup.js"
+    },
+    {
+      "src": "/api/categories",
+      "dest": "/api/categories.js"
+    },
+    {
+      "src": "/api/budget/current",
+      "dest": "/api/budget/current.js"
+    },
+    {
+      "src": "/api/budget/week",
+      "dest": "/api/budget/week.js"
+    },
+    {
+      "src": "/api/expenses/add",
+      "dest": "/api/expenses/add.js"
+    },
+    {
+      "src": "/api/expenses/current",
+      "dest": "/api/expenses/current.js"
+    },
+    {
+      "src": "/api/smart/alerts",
+      "dest": "/api/smart/alerts.js"
+    },
+    {
+      "src": "/api/smart/health",
+      "dest": "/api/smart/health.js"
     },
     {
       "src": "/(.*)",
