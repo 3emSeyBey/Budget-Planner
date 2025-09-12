@@ -120,12 +120,25 @@ class BudgetPlanner {
         
         // Calculate the Wednesday of current week
         if (dayOfWeek === 3) { // Wednesday
-            return today.toISOString().split('T')[0];
+            return this.formatDateForAPI(today);
         } else {
-            const daysToWednesday = (dayOfWeek + 4) % 7;
+            // Calculate days to Wednesday (Wednesday is day 3)
+            let daysToWednesday;
+            if (dayOfWeek < 3) {
+                // If it's before Wednesday (Sun=0, Mon=1, Tue=2), go forward
+                daysToWednesday = 3 - dayOfWeek;
+            } else {
+                // If it's after Wednesday (Thu=4, Fri=5, Sat=6), go back to this week's Wednesday
+                daysToWednesday = dayOfWeek - 3;
+            }
+            
             const wednesday = new Date(today);
-            wednesday.setDate(today.getDate() - daysToWednesday);
-            return wednesday.toISOString().split('T')[0];
+            if (dayOfWeek < 3) {
+                wednesday.setDate(today.getDate() + daysToWednesday);
+            } else {
+                wednesday.setDate(today.getDate() - daysToWednesday);
+            }
+            return this.formatDateForAPI(wednesday);
         }
     }
 
