@@ -83,7 +83,8 @@ This guide will help you deploy the Smart Budget Planner as a serverless applica
 1. Sign up at [tidbcloud.com](https://tidbcloud.com)
 2. Create a new TiDB Serverless cluster
 3. Get connection string from "Connect" tab
-4. Use the default MySQL schema (no changes needed)
+4. **Important**: Download the CA certificate from the "Connect" tab
+5. Use the default MySQL schema (no changes needed)
 
 ### Neon PostgreSQL
 1. Sign up at [neon.tech](https://neon.tech)
@@ -126,7 +127,11 @@ This guide will help you deploy the Smart Budget Planner as a serverless applica
    ```bash
    vercel env add DATABASE_URL
    # Paste your database connection string when prompted
-   # Example: mysql://username:password@host:port/database_name?ssl={"rejectUnauthorized":true}
+   # Example: mysql://username:password@host:port/database_name
+   
+   vercel env add TIDB_CA_CERT
+   # Paste your TiDB CA certificate when prompted
+   # Example: -----BEGIN CERTIFICATE-----\nMIIDXTCCAkWgAwIBAgIJAKoK/OvD8f7OMA0GCSqGSIb3DQEBCwUAMEUxCzAJBgNV...\n-----END CERTIFICATE-----
    ```
 
 5. **Redeploy with environment variables**:
@@ -149,6 +154,11 @@ This guide will help you deploy the Smart Budget Planner as a serverless applica
    - Click "Add New"
    - Name: `DATABASE_URL`
    - Value: Your database connection string
+   - Environment: Production, Preview, Development (select all)
+   - Click "Save"
+   - Click "Add New" again
+   - Name: `TIDB_CA_CERT`
+   - Value: Your TiDB CA certificate (paste the entire certificate including BEGIN/END lines)
    - Environment: Production, Preview, Development (select all)
    - Click "Save"
 
@@ -205,7 +215,8 @@ Set these in your Vercel project settings:
 
 | Variable | Description | Example |
 |----------|-------------|---------|
-| `DATABASE_URL` | Database connection string | `mysql://user:pass@host:port/db?ssl={"rejectUnauthorized":true}` |
+| `DATABASE_URL` | Database connection string | `mysql://user:pass@host:port/db` |
+| `TIDB_CA_CERT` | TiDB CA certificate (required for TiDB) | `-----BEGIN CERTIFICATE-----\nMIIDXTCCAkWgAwIBAgIJAKoK/OvD8f7OMA0GCSqGSIb3DQEBCwUAMEUxCzAJBgNV...\n-----END CERTIFICATE-----` |
 | `JWT_SECRET` | Secret for JWT tokens (optional) | `your-secret-key` |
 
 ## API Endpoints
@@ -236,16 +247,23 @@ Your deployed application will have these endpoints:
    - Ensure your database allows connections from Vercel's IP ranges
    - Check if SSL is required (most cloud databases require it)
 
-3. **CORS Errors**:
+3. **TiDB CA Certificate Issues**:
+   - **Error**: "certificate verify failed" or SSL errors
+   - **Solution**: Make sure `TIDB_CA_CERT` is set with the complete certificate
+   - **Format**: Include the entire certificate with `-----BEGIN CERTIFICATE-----` and `-----END CERTIFICATE-----`
+   - **Download**: Get the certificate from TiDB Cloud dashboard → Connect → Download CA certificate
+   - **Test**: Use the `/api/test-db` endpoint to verify both `DATABASE_URL` and `TIDB_CA_CERT` are set
+
+4. **CORS Errors**:
    - The API endpoints include CORS headers
    - If you're still getting CORS errors, check your browser's developer console
 
-3. **Environment Variables Not Working**:
+5. **Environment Variables Not Working**:
    - Make sure you've set the environment variables in Vercel dashboard
    - Redeploy after setting environment variables
    - Check the variable names match exactly (case-sensitive)
 
-4. **Database Schema Issues**:
+6. **Database Schema Issues**:
    - Run the setup endpoint to initialize the database
    - Check your database logs for any SQL errors
 

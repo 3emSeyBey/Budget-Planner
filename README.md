@@ -73,7 +73,8 @@ Based on your spreadsheet, the app manages these 11 categories:
    **Option A: TiDB Serverless (Recommended - Free)**
    - Sign up at [tidbcloud.com](https://tidbcloud.com)
    - Create a new TiDB Serverless cluster
-   - Copy the connection string
+   - Copy the connection string from "Connect" tab
+   - **Important**: Download the CA certificate from "Connect" tab
    - No code changes needed (MySQL compatible)
 
    **Option B: Neon PostgreSQL (Free)**
@@ -108,7 +109,12 @@ Based on your spreadsheet, the app manages these 11 categories:
    # Set database environment variable
    vercel env add DATABASE_URL
    # Paste your database connection string when prompted
-   # Example: mysql://username:password@host:port/database_name?ssl={"rejectUnauthorized":true}
+   # Example: mysql://username:password@host:port/database_name
+   
+   # Set TiDB CA certificate (required for TiDB)
+   vercel env add TIDB_CA_CERT
+   # Paste your TiDB CA certificate when prompted
+   # Example: -----BEGIN CERTIFICATE-----\nMIIDXTCCAkWgAwIBAgIJAKoK/OvD8f7OMA0GCSqGSIb3DQEBCwUAMEUxCzAJBgNV...\n-----END CERTIFICATE-----
    
    # Deploy to production
    vercel --prod
@@ -119,6 +125,7 @@ Based on your spreadsheet, the app manages these 11 categories:
    - Click "New Project" and import your repository
    - Go to Project Settings → Environment Variables
    - Add `DATABASE_URL` with your database connection string
+   - Add `TIDB_CA_CERT` with your TiDB CA certificate (for TiDB only)
    - Select all environments (Production, Preview, Development)
    - Click "Save"
 

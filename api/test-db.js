@@ -21,6 +21,7 @@ module.exports = async (req, res) => {
       // Check environment variables
       const envCheck = {
         DATABASE_URL: process.env.DATABASE_URL ? 'Set' : 'Not set',
+        TIDB_CA_CERT: process.env.TIDB_CA_CERT ? 'Set' : 'Not set',
         NODE_ENV: process.env.NODE_ENV || 'Not set',
         VERCEL: process.env.VERCEL || 'Not set'
       };
