@@ -125,19 +125,15 @@ class BudgetPlanner {
             // Calculate days to Wednesday (Wednesday is day 3)
             let daysToWednesday;
             if (dayOfWeek < 3) {
-                // If it's before Wednesday (Sun=0, Mon=1, Tue=2), go forward
+                // If it's before Wednesday (Sun=0, Mon=1, Tue=2), go forward to this week's Wednesday
                 daysToWednesday = 3 - dayOfWeek;
             } else {
-                // If it's after Wednesday (Thu=4, Fri=5, Sat=6), go back to this week's Wednesday
-                daysToWednesday = dayOfWeek - 3;
+                // If it's after Wednesday (Thu=4, Fri=5, Sat=6), go forward to next week's Wednesday
+                daysToWednesday = 7 - (dayOfWeek - 3);
             }
             
             const wednesday = new Date(today);
-            if (dayOfWeek < 3) {
-                wednesday.setDate(today.getDate() + daysToWednesday);
-            } else {
-                wednesday.setDate(today.getDate() - daysToWednesday);
-            }
+            wednesday.setDate(today.getDate() + daysToWednesday);
             return this.formatDateForAPI(wednesday);
         }
     }
@@ -303,7 +299,7 @@ class BudgetPlanner {
     }
 
     isCurrentWeek(dateString) {
-        return dateString === this.currentWeek;
+        return dateString === this.getCurrentWeek();
     }
 
     getWeekStatus(dateString) {
@@ -312,9 +308,9 @@ class BudgetPlanner {
         }
         
         const date = new Date(dateString);
-        const currentDate = new Date(this.currentWeek);
+        const actualCurrentWeek = new Date(this.getCurrentWeek());
         
-        if (date < currentDate) {
+        if (date < actualCurrentWeek) {
             return 'past';
         } else {
             return 'future';
