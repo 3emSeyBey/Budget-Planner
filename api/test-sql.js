@@ -39,8 +39,8 @@ module.exports = async (req, res) => {
     // Test 2: Database selection
     try {
       await query('USE test');
-      const [dbResult] = await query('SELECT DATABASE() as current_db');
-      results.database_selection = `SUCCESS - Using: ${dbResult[0]?.current_db}`;
+      const dbResult = await query('SELECT DATABASE() as current_db');
+      results.database_selection = `SUCCESS - Using: ${dbResult[0]?.Database || dbResult[0]?.current_db || 'unknown'}`;
     } catch (error) {
       results.database_selection = 'FAILED';
       results.errors.push(`Database selection failed: ${error.message}`);
@@ -63,8 +63,16 @@ module.exports = async (req, res) => {
 
     // Test 4: Simple query
     try {
-      const [rows] = await query('SELECT COUNT(*) as count FROM test_sql_table');
-      results.simple_query = `SUCCESS - Count: ${rows[0].count}`;
+      const rows = await query('SELECT COUNT(*) as count FROM test_sql_table');
+      console.log('Query result:', rows);
+      console.log('Query result type:', typeof rows);
+      console.log('Query result length:', rows ? rows.length : 'undefined');
+      
+      if (rows && rows.length > 0) {
+        results.simple_query = `SUCCESS - Count: ${rows[0].count}`;
+      } else {
+        results.simple_query = 'SUCCESS - No rows returned';
+      }
     } catch (error) {
       results.simple_query = 'FAILED';
       results.errors.push(`Query failed: ${error.message}`);

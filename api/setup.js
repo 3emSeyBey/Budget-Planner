@@ -117,8 +117,8 @@ module.exports = async (req, res) => {
       
       // Check current database first
       try {
-        const [dbResult] = await query('SELECT DATABASE() as current_db');
-        console.log('Current database:', dbResult[0]?.current_db);
+        const dbResult = await query('SELECT DATABASE() as current_db');
+        console.log('Current database:', dbResult[0]?.Database || dbResult[0]?.current_db);
       } catch (dbError) {
         console.error('Error getting current database:', dbError.message);
       }
