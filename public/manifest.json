@@ -12,6 +12,18 @@
   "categories": ["finance", "productivity", "utilities"],
   "icons": [
     {
+      "src": "/icons/icon-16x16.png",
+      "sizes": "16x16",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-32x32.png",
+      "sizes": "32x32",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
       "src": "/icons/icon-72x72.png",
       "sizes": "72x72",
       "type": "image/png",
@@ -82,7 +94,7 @@
       "url": "/?action=add-expense",
       "icons": [
         {
-          "src": "/icons/add-expense-96x96.png",
+          "src": "/icons/icon-96x96.png",
           "sizes": "96x96"
         }
       ]
@@ -94,7 +106,7 @@
       "url": "/?action=budget",
       "icons": [
         {
-          "src": "/icons/budget-96x96.png",
+          "src": "/icons/icon-96x96.png",
           "sizes": "96x96"
         }
       ]
