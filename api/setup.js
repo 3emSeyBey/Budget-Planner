@@ -7,6 +7,8 @@ const fs = require('fs');
 const path = require('path');
 
 module.exports = async (req, res) => {
+  console.log('Setup API called:', req.method, req.url);
+  
   // Set CORS headers
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');

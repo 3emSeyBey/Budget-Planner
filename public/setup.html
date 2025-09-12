@@ -71,6 +71,9 @@
         </div>
         
         <div class="d-grid gap-2">
+            <button class="btn btn-setup" onclick="testAPI()">
+                <i class="fas fa-heartbeat me-2"></i>Test API Connection
+            </button>
             <button class="btn btn-setup" onclick="testDatabase()">
                 <i class="fas fa-vial me-2"></i>Test Database Connection
             </button>
@@ -89,6 +92,37 @@
     </div>
 
     <script>
+        async function testAPI() {
+            const status = document.getElementById('status');
+            status.style.display = 'none';
+            
+            try {
+                const response = await fetch('/api/health');
+                const result = await response.json();
+                
+                if (result.success) {
+                    status.className = 'status success';
+                    status.innerHTML = `
+                        <i class="fas fa-check-circle me-2"></i>
+                        <strong>API Test Results:</strong>
+                        <br><strong>Status:</strong> ${result.message}
+                        <br><strong>Environment:</strong> ${JSON.stringify(result.environment, null, 2)}
+                        <br><strong>Timestamp:</strong> ${result.timestamp}
+                    `;
+                } else {
+                    throw new Error(result.message || 'API test failed');
+                }
+            } catch (error) {
+                status.className = 'status error';
+                status.innerHTML = `
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    <strong>API Test Failed:</strong> ${error.message}
+                    <br><small>This means the API endpoints are not working. Check your Vercel deployment.</small>
+                `;
+            }
+            status.style.display = 'block';
+        }
+
         async function testDatabase() {
             const status = document.getElementById('status');
             status.style.display = 'none';
@@ -175,9 +209,13 @@
                 
                 // Reset buttons
                 buttons.forEach((btn, index) => {
-                    btn.innerHTML = index === 0 ? 
-                        '<i class="fas fa-vial me-2"></i>Test Database Connection' :
-                        '<i class="fas fa-cog me-2"></i>Initialize Database';
+                    if (index === 0) {
+                        btn.innerHTML = '<i class="fas fa-heartbeat me-2"></i>Test API Connection';
+                    } else if (index === 1) {
+                        btn.innerHTML = '<i class="fas fa-vial me-2"></i>Test Database Connection';
+                    } else {
+                        btn.innerHTML = '<i class="fas fa-cog me-2"></i>Initialize Database';
+                    }
                     btn.disabled = false;
                 });
             }
