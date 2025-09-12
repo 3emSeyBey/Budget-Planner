@@ -114,7 +114,10 @@ class BudgetPlanner {
         document.getElementById('expense-date-filter').value = currentWeek;
         
         // Set default date for quick expense form (PHT timezone)
-        this.setDefaultQuickExpenseDate();
+        // Use a small delay to ensure DOM is fully ready
+        setTimeout(() => {
+            this.setDefaultQuickExpenseDate();
+        }, 100);
         
         // Setup week selector with week numbers
         this.setupWeekSelector();
@@ -767,7 +770,15 @@ class BudgetPlanner {
     setDefaultQuickExpenseDate() {
         // Set default date to today in PHT timezone
         const todayPHT = this.getPHTDate();
-        document.getElementById('quick-date').value = this.formatDateForInput(todayPHT);
+        const formattedDate = this.formatDateForInput(todayPHT);
+        const dateField = document.getElementById('quick-date');
+        
+        if (dateField) {
+            dateField.value = formattedDate;
+            console.log('PHT date set to:', formattedDate);
+        } else {
+            console.error('Quick date field not found');
+        }
     }
 
     updateWeekEndDate(startDate) {
@@ -863,6 +874,7 @@ class BudgetPlanner {
                     <select class="form-select form-select-sm action-plan-select" 
                             data-category-id="${item.category_id}" 
                             data-week-date="${item.week_date}"
+                            data-selected="${actionPlan}"
                             style="min-width: 100px;">
                         <option value="spend" ${actionPlan === 'spend' ? 'selected' : ''}>Spend</option>
                         <option value="save" ${actionPlan === 'save' ? 'selected' : ''}>Save</option>
@@ -902,11 +914,20 @@ class BudgetPlanner {
         const weekDate = select.dataset.weekDate;
         const actionPlan = select.value;
 
+        // Update the data attribute for styling
+        select.setAttribute('data-selected', actionPlan);
+
+        // Get the current planned amount from the table row
+        const row = select.closest('tr');
+        const amountCell = row.querySelector('td:nth-child(3)'); // Planned Amount column
+        const amountText = amountCell.textContent.replace('₱', '').replace(/,/g, '');
+        const currentAmount = parseFloat(amountText);
+
         try {
             await this.apiCall('budget?type=week', 'POST', {
                 week_date: weekDate,
                 category_id: categoryId,
-                amount: 0, // We're only updating action_plan, not amount
+                amount: currentAmount,
                 action_plan: actionPlan,
                 notes: 'Action plan updated'
             });

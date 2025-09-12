@@ -209,25 +209,25 @@ async function initializeCurrentWeek() {
   if (result[0].count === 0) {
     // Create default budget for current week
     const defaultBudget = [
-      { categoryId: 1, amount: 750 },   // Phone
-      { categoryId: 2, amount: 500 },   // Groceries
-      { categoryId: 3, amount: 1750 },  // Rent
-      { categoryId: 4, amount: 400 },   // Electric
-      { categoryId: 5, amount: 900 },   // Motorbike
-      { categoryId: 6, amount: 1050 },  // Daily Expense
-      { categoryId: 7, amount: 1000 },  // Savings
-      { categoryId: 8, amount: 0 },     // GCredit
-      { categoryId: 9, amount: 3650 },  // CIMB Credit
-      { categoryId: 10, amount: 2000 }, // Misc
-      { categoryId: 11, amount: 0 }     // Extra Debts
+      { categoryId: 1, amount: 750, actionPlan: 'spend' },   // Phone
+      { categoryId: 2, amount: 500, actionPlan: 'spend' },   // Groceries
+      { categoryId: 3, amount: 1750, actionPlan: 'spend' },  // Rent
+      { categoryId: 4, amount: 400, actionPlan: 'spend' },   // Electric
+      { categoryId: 5, amount: 900, actionPlan: 'spend' },   // Motorbike
+      { categoryId: 6, amount: 1050, actionPlan: 'spend' },  // Daily Expense
+      { categoryId: 7, amount: 1000, actionPlan: 'save' },   // Savings
+      { categoryId: 8, amount: 0, actionPlan: 'spend' },     // GCredit
+      { categoryId: 9, amount: 3650, actionPlan: 'spend' },  // CIMB Credit
+      { categoryId: 10, amount: 2000, actionPlan: 'spend' }, // Misc
+      { categoryId: 11, amount: 0, actionPlan: 'spend' }     // Extra Debts
     ];
     
     for (const allocation of defaultBudget) {
       const insertSql = `
-        INSERT INTO weekly_budgets (week_date, category_id, planned_amount, status) 
-        VALUES (?, ?, ?, 'active')
+        INSERT INTO weekly_budgets (week_date, category_id, planned_amount, action_plan, status) 
+        VALUES (?, ?, ?, ?, 'active')
       `;
-      await query(insertSql, [currentWeek, allocation.categoryId, allocation.amount]);
+      await query(insertSql, [currentWeek, allocation.categoryId, allocation.amount, allocation.actionPlan]);
     }
   }
 }

@@ -49,7 +49,7 @@ module.exports = async (req, res) => {
       if (type === 'week') {
         const { week_date, category_id, amount, action_plan, notes } = req.body;
         
-        if (!week_date || !category_id || !amount) {
+        if (!week_date || !category_id || amount === undefined || amount === null) {
           return res.status(400).json({
             success: false,
             message: 'Week date, category ID, and amount are required'
