@@ -306,6 +306,12 @@ class BudgetPlanner {
     }
 
     createBudgetChart(budget) {
+        // Check if Chart.js is available
+        if (typeof Chart === 'undefined') {
+            console.warn('Chart.js is not loaded. Skipping chart creation.');
+            return;
+        }
+
         const ctx = document.getElementById('budget-chart').getContext('2d');
         
         if (this.charts.budget) {
@@ -624,6 +630,12 @@ class BudgetPlanner {
     }
 
     createTrendsChart(trends) {
+        // Check if Chart.js is available
+        if (typeof Chart === 'undefined') {
+            console.warn('Chart.js is not loaded. Skipping trends chart creation.');
+            return;
+        }
+
         const ctx = document.getElementById('trends-chart').getContext('2d');
         
         if (this.charts.trends) {
@@ -669,6 +681,12 @@ class BudgetPlanner {
     }
 
     createCategoriesChart(categories) {
+        // Check if Chart.js is available
+        if (typeof Chart === 'undefined') {
+            console.warn('Chart.js is not loaded. Skipping categories chart creation.');
+            return;
+        }
+
         const ctx = document.getElementById('categories-chart').getContext('2d');
         
         if (this.charts.categories) {
@@ -713,6 +731,12 @@ class BudgetPlanner {
     }
 
     createForecastChart(forecast) {
+        // Check if Chart.js is available
+        if (typeof Chart === 'undefined') {
+            console.warn('Chart.js is not loaded. Skipping forecast chart creation.');
+            return;
+        }
+
         const ctx = document.getElementById('forecast-chart').getContext('2d');
         
         if (this.charts.forecast) {

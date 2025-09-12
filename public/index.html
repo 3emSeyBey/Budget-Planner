@@ -659,8 +659,18 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.min.js"></script>
     <script src="assets/js/app.js"></script>
     <script>
+        // Wait for Chart.js to be loaded before initializing the application
+        function initializeApp() {
+            if (typeof Chart !== 'undefined') {
+                const budgetPlanner = new BudgetPlanner();
+            } else {
+                // Retry after a short delay if Chart.js is not yet loaded
+                setTimeout(initializeApp, 100);
+            }
+        }
+        
         // Initialize the application
-        const budgetPlanner = new BudgetPlanner();
+        initializeApp();
     </script>
 </body>
 </html>
