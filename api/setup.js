@@ -52,6 +52,11 @@ module.exports = async (req, res) => {
       console.log(`Found ${statements.length} SQL statements to execute`);
       console.log('First few statements:', statements.slice(0, 3));
       
+      // Debug: Show all statements
+      statements.forEach((stmt, index) => {
+        console.log(`Statement ${index + 1}: ${stmt.substring(0, 100)}...`);
+      });
+      
       // Log the raw schema for debugging
       console.log('Raw schema length:', schema.length);
       console.log('Schema preview:', schema.substring(0, 200));
@@ -87,6 +92,19 @@ module.exports = async (req, res) => {
       } catch (testError) {
         console.error('Simple CREATE TABLE test failed:', testError.message);
         errors.push(`Database permissions test failed: ${testError.message}`);
+      }
+      
+      // Test executing one of the actual schema statements manually
+      if (statements.length > 0) {
+        try {
+          console.log('Testing first schema statement manually...');
+          console.log('Statement to test:', statements[0]);
+          await query(statements[0]);
+          console.log('First schema statement test: SUCCESS');
+        } catch (schemaError) {
+          console.error('First schema statement test failed:', schemaError.message);
+          errors.push(`Schema statement test failed: ${schemaError.message}`);
+        }
       }
       
       
