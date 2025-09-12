@@ -305,6 +305,32 @@ class BudgetPlanner {
         }
     }
 
+    getWeekStatusClass(status) {
+        switch (status) {
+            case 'current':
+                return 'bg-success';
+            case 'past':
+                return 'bg-secondary';
+            case 'future':
+                return 'bg-primary';
+            default:
+                return 'bg-light text-dark';
+        }
+    }
+
+    getWeekStatusText(status) {
+        switch (status) {
+            case 'current':
+                return 'Current';
+            case 'past':
+                return 'Past';
+            case 'future':
+                return 'Future';
+            default:
+                return 'Unknown';
+        }
+    }
+
     showSection(sectionName) {
         console.log('Switching to section:', sectionName);
         
