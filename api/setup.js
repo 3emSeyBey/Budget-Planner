@@ -104,12 +104,23 @@ module.exports = async (req, res) => {
       const tableCheck = await verifyTables();
       console.log('Table verification result:', tableCheck);
       
-      // Initialize current week budget
-      await initializeCurrentWeek();
+      // Only initialize current week budget if tables were created successfully
+      if (tableCheck.weekly_budgets && tableCheck.budget_categories) {
+        console.log('Tables verified, initializing current week budget...');
+        await initializeCurrentWeek();
+      } else {
+        console.warn('Tables not created successfully, skipping current week initialization');
+        errors.push('Tables were not created successfully - check database permissions and connection');
+      }
       
-      res.status(200).json({
-        success: true,
-        message: `Database setup completed. ${executedStatements} statements executed.`,
+      // Determine if setup was successful
+      const setupSuccessful = executedStatements > 0 && tableCheck.weekly_budgets && tableCheck.budget_categories;
+      
+      res.status(setupSuccessful ? 200 : 500).json({
+        success: setupSuccessful,
+        message: setupSuccessful 
+          ? `Database setup completed successfully. ${executedStatements} statements executed.`
+          : `Database setup failed. ${executedStatements} statements executed, but tables were not created properly.`,
         statements_executed: executedStatements,
         total_statements: statements.length,
         table_verification: tableCheck,
