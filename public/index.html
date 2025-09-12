@@ -1,0 +1,666 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Budget Planner</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.min.css" rel="stylesheet">
+    <link href="assets/css/style.css" rel="stylesheet">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary fixed-top">
+        <div class="container">
+            <a class="navbar-brand" href="#">
+                <i class="fas fa-wallet me-2"></i>Smart Budget Planner
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link active" href="#dashboard" data-section="dashboard">
+                            <i class="fas fa-tachometer-alt me-1"></i>Dashboard
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#budget" data-section="budget">
+                            <i class="fas fa-chart-pie me-1"></i>Budget
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#expenses" data-section="expenses">
+                            <i class="fas fa-receipt me-1"></i>Expenses
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#analytics" data-section="analytics">
+                            <i class="fas fa-chart-line me-1"></i>Analytics
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#smart" data-section="smart">
+                            <i class="fas fa-brain me-1"></i>Smart Features
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <!-- Dashboard Section -->
+        <section id="dashboard" class="content-section active">
+            <div class="container mt-5 pt-4">
+                <div class="row">
+                    <div class="col-12">
+                        <h2 class="mb-4">
+                            <i class="fas fa-tachometer-alt me-2"></i>Dashboard
+                        </h2>
+                    </div>
+                </div>
+
+                <!-- Quick Stats -->
+                <div class="row mb-4">
+                    <div class="col-md-3 col-sm-6 mb-3">
+                        <div class="card stat-card bg-primary text-white">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between">
+                                    <div>
+                                        <h6 class="card-title">Weekly Budget</h6>
+                                        <h4 class="mb-0">₱12,000</h4>
+                                    </div>
+                                    <div class="align-self-center">
+                                        <i class="fas fa-wallet fa-2x"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3 col-sm-6 mb-3">
+                        <div class="card stat-card bg-success text-white">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between">
+                                    <div>
+                                        <h6 class="card-title">Spent This Week</h6>
+                                        <h4 class="mb-0" id="weekly-spent">₱0</h4>
+                                    </div>
+                                    <div class="align-self-center">
+                                        <i class="fas fa-shopping-cart fa-2x"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3 col-sm-6 mb-3">
+                        <div class="card stat-card bg-info text-white">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between">
+                                    <div>
+                                        <h6 class="card-title">Remaining</h6>
+                                        <h4 class="mb-0" id="remaining-budget">₱12,000</h4>
+                                    </div>
+                                    <div class="align-self-center">
+                                        <i class="fas fa-piggy-bank fa-2x"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3 col-sm-6 mb-3">
+                        <div class="card stat-card bg-warning text-white">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between">
+                                    <div>
+                                        <h6 class="card-title">Budget Health</h6>
+                                        <h4 class="mb-0" id="health-score">100%</h4>
+                                    </div>
+                                    <div class="align-self-center">
+                                        <i class="fas fa-heartbeat fa-2x"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Alerts -->
+                <div class="row mb-4">
+                    <div class="col-12">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5 class="mb-0">
+                                    <i class="fas fa-exclamation-triangle me-2"></i>Smart Alerts
+                                </h5>
+                            </div>
+                            <div class="card-body" id="alerts-container">
+                                <div class="text-center text-muted">
+                                    <i class="fas fa-spinner fa-spin"></i> Loading alerts...
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Quick Actions -->
+                <div class="row">
+                    <div class="col-md-6 mb-4">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5 class="mb-0">
+                                    <i class="fas fa-plus-circle me-2"></i>Quick Add Expense
+                                </h5>
+                            </div>
+                            <div class="card-body">
+                                <form id="quick-expense-form">
+                                    <div class="row">
+                                        <div class="col-md-6 mb-3">
+                                            <label class="form-label">Category</label>
+                                            <select class="form-select" id="quick-category" required>
+                                                <option value="">Select Category</option>
+                                            </select>
+                                        </div>
+                                        <div class="col-md-6 mb-3">
+                                            <label class="form-label">Amount</label>
+                                            <input type="number" class="form-control" id="quick-amount" step="0.01" required>
+                                        </div>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label">Description</label>
+                                        <input type="text" class="form-control" id="quick-description" placeholder="What did you spend on?">
+                                    </div>
+                                    <button type="submit" class="btn btn-primary w-100">
+                                        <i class="fas fa-plus me-2"></i>Add Expense
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6 mb-4">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5 class="mb-0">
+                                    <i class="fas fa-chart-pie me-2"></i>This Week's Budget
+                                </h5>
+                            </div>
+                            <div class="card-body">
+                                <canvas id="budget-chart" height="200"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Budget Section -->
+        <section id="budget" class="content-section">
+            <div class="container mt-5 pt-4">
+                <div class="row">
+                    <div class="col-12">
+                        <h2 class="mb-4">
+                            <i class="fas fa-chart-pie me-2"></i>Budget Management
+                        </h2>
+                    </div>
+                </div>
+
+                <!-- Week Selector -->
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <div class="card">
+                            <div class="card-body">
+                                <h5 class="card-title">Select Week</h5>
+                                <div class="d-flex gap-2">
+                                    <input type="date" class="form-control" id="budget-week-selector">
+                                    <button class="btn btn-outline-primary" id="load-budget-btn">
+                                        <i class="fas fa-search"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card">
+                            <div class="card-body">
+                                <h5 class="card-title">Quick Actions</h5>
+                                <div class="d-flex gap-2">
+                                    <button class="btn btn-success" id="smart-adjust-btn">
+                                        <i class="fas fa-magic me-1"></i>Smart Adjust
+                                    </button>
+                                    <button class="btn btn-info" id="predict-next-btn">
+                                        <i class="fas fa-crystal-ball me-1"></i>Predict Next Week
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Budget Table -->
+                <div class="row">
+                    <div class="col-12">
+                        <div class="card">
+                            <div class="card-header d-flex justify-content-between align-items-center">
+                                <h5 class="mb-0">Budget Allocation</h5>
+                                <button class="btn btn-primary btn-sm" id="save-budget-btn">
+                                    <i class="fas fa-save me-1"></i>Save Changes
+                                </button>
+                            </div>
+                            <div class="card-body">
+                                <div class="table-responsive">
+                                    <table class="table table-hover" id="budget-table">
+                                        <thead>
+                                            <tr>
+                                                <th>Category</th>
+                                                <th>Bank</th>
+                                                <th>Planned Amount</th>
+                                                <th>Actual Spent</th>
+                                                <th>Remaining</th>
+                                                <th>Status</th>
+                                                <th>Actions</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="budget-table-body">
+                                            <tr>
+                                                <td colspan="7" class="text-center text-muted">
+                                                    <i class="fas fa-spinner fa-spin"></i> Loading budget data...
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Expenses Section -->
+        <section id="expenses" class="content-section">
+            <div class="container mt-5 pt-4">
+                <div class="row">
+                    <div class="col-12">
+                        <h2 class="mb-4">
+                            <i class="fas fa-receipt me-2"></i>Expense Tracking
+                        </h2>
+                    </div>
+                </div>
+
+                <!-- Add Expense Form -->
+                <div class="row mb-4">
+                    <div class="col-12">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5 class="mb-0">
+                                    <i class="fas fa-plus-circle me-2"></i>Add New Expense
+                                </h5>
+                            </div>
+                            <div class="card-body">
+                                <form id="expense-form">
+                                    <div class="row">
+                                        <div class="col-md-3 mb-3">
+                                            <label class="form-label">Date</label>
+                                            <input type="date" class="form-control" id="expense-date" required>
+                                        </div>
+                                        <div class="col-md-3 mb-3">
+                                            <label class="form-label">Category</label>
+                                            <select class="form-select" id="expense-category" required>
+                                                <option value="">Select Category</option>
+                                            </select>
+                                        </div>
+                                        <div class="col-md-3 mb-3">
+                                            <label class="form-label">Amount</label>
+                                            <input type="number" class="form-control" id="expense-amount" step="0.01" required>
+                                        </div>
+                                        <div class="col-md-3 mb-3">
+                                            <label class="form-label">Payment Method</label>
+                                            <select class="form-select" id="expense-payment">
+                                                <option value="Cash">Cash</option>
+                                                <option value="GCash">GCash</option>
+                                                <option value="Maya">Maya</option>
+                                                <option value="BPI">BPI</option>
+                                                <option value="CIMB">CIMB</option>
+                                                <option value="UnoBank">UnoBank</option>
+                                                <option value="GoTyme">GoTyme</option>
+                                                <option value="GSave">GSave</option>
+                                                <option value="MayBank">MayBank</option>
+                                                <option value="Cebuana">Cebuana</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-md-6 mb-3">
+                                            <label class="form-label">Description</label>
+                                            <input type="text" class="form-control" id="expense-description" placeholder="What did you spend on?">
+                                        </div>
+                                        <div class="col-md-6 mb-3">
+                                            <label class="form-label">Location</label>
+                                            <input type="text" class="form-control" id="expense-location" placeholder="Where did you spend?">
+                                        </div>
+                                    </div>
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="fas fa-plus me-2"></i>Add Expense
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Expenses List -->
+                <div class="row">
+                    <div class="col-12">
+                        <div class="card">
+                            <div class="card-header d-flex justify-content-between align-items-center">
+                                <h5 class="mb-0">Recent Expenses</h5>
+                                <div class="d-flex gap-2">
+                                    <input type="date" class="form-control form-control-sm" id="expense-date-filter" style="width: auto;">
+                                    <button class="btn btn-outline-primary btn-sm" id="filter-expenses-btn">
+                                        <i class="fas fa-filter"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                <div class="table-responsive">
+                                    <table class="table table-hover" id="expenses-table">
+                                        <thead>
+                                            <tr>
+                                                <th>Date</th>
+                                                <th>Category</th>
+                                                <th>Description</th>
+                                                <th>Amount</th>
+                                                <th>Payment Method</th>
+                                                <th>Location</th>
+                                                <th>Actions</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="expenses-table-body">
+                                            <tr>
+                                                <td colspan="7" class="text-center text-muted">
+                                                    <i class="fas fa-spinner fa-spin"></i> Loading expenses...
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Analytics Section -->
+        <section id="analytics" class="content-section">
+            <div class="container mt-5 pt-4">
+                <div class="row">
+                    <div class="col-12">
+                        <h2 class="mb-4">
+                            <i class="fas fa-chart-line me-2"></i>Analytics & Reports
+                        </h2>
+                    </div>
+                </div>
+
+                <!-- Analytics Cards -->
+                <div class="row mb-4">
+                    <div class="col-md-4 mb-3">
+                        <div class="card">
+                            <div class="card-body text-center">
+                                <h5 class="card-title">Spending Trends</h5>
+                                <canvas id="trends-chart" height="200"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <div class="card">
+                            <div class="card-body text-center">
+                                <h5 class="card-title">Top Categories</h5>
+                                <canvas id="categories-chart" height="200"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <div class="card">
+                            <div class="card-body text-center">
+                                <h5 class="card-title">Monthly Forecast</h5>
+                                <canvas id="forecast-chart" height="200"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Detailed Reports -->
+                <div class="row">
+                    <div class="col-12">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5 class="mb-0">Detailed Analytics</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <h6>Spending by Category (Last 4 Weeks)</h6>
+                                        <div id="category-breakdown"></div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <h6>Savings Recommendations</h6>
+                                        <div id="savings-recommendations"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Smart Features Section -->
+        <section id="smart" class="content-section">
+            <div class="container mt-5 pt-4">
+                <div class="row">
+                    <div class="col-12">
+                        <h2 class="mb-4">
+                            <i class="fas fa-brain me-2"></i>Smart Features
+                        </h2>
+                    </div>
+                </div>
+
+                <!-- Smart Recommendations -->
+                <div class="row mb-4">
+                    <div class="col-md-6 mb-4">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5 class="mb-0">
+                                    <i class="fas fa-magic me-2"></i>Smart Reallocation
+                                </h5>
+                            </div>
+                            <div class="card-body">
+                                <p class="text-muted">Get AI-powered suggestions for optimizing your budget allocation.</p>
+                                <button class="btn btn-primary w-100" id="get-reallocations-btn">
+                                    <i class="fas fa-cogs me-2"></i>Get Smart Suggestions
+                                </button>
+                                <div id="reallocations-container" class="mt-3"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6 mb-4">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5 class="mb-0">
+                                    <i class="fas fa-crystal-ball me-2"></i>Next Week Prediction
+                                </h5>
+                            </div>
+                            <div class="card-body">
+                                <p class="text-muted">Predict optimal budget allocation for next week based on your spending patterns.</p>
+                                <button class="btn btn-info w-100" id="get-predictions-btn">
+                                    <i class="fas fa-chart-line me-2"></i>Generate Prediction
+                                </button>
+                                <div id="predictions-container" class="mt-3"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Auto Adjustments -->
+                <div class="row">
+                    <div class="col-12">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5 class="mb-0">
+                                    <i class="fas fa-robot me-2"></i>Automatic Adjustments
+                                </h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-4">
+                                        <div class="text-center">
+                                            <i class="fas fa-sync-alt fa-3x text-primary mb-3"></i>
+                                            <h5>Auto-Adjust Next Week</h5>
+                                            <p class="text-muted">Automatically adjust next week's budget based on current week's performance.</p>
+                                            <button class="btn btn-success" id="auto-adjust-btn">
+                                                <i class="fas fa-magic me-2"></i>Auto Adjust
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="text-center">
+                                            <i class="fas fa-balance-scale fa-3x text-info mb-3"></i>
+                                            <h5>Budget Balance</h5>
+                                            <p class="text-muted">Ensure your weekly budget always totals exactly ₱12,000.</p>
+                                            <button class="btn btn-info" id="balance-budget-btn">
+                                                <i class="fas fa-equals me-2"></i>Balance Budget
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="text-center">
+                                            <i class="fas fa-lightbulb fa-3x text-warning mb-3"></i>
+                                            <h5>Smart Insights</h5>
+                                            <p class="text-muted">Get personalized insights and recommendations for better money management.</p>
+                                            <button class="btn btn-warning" id="get-insights-btn">
+                                                <i class="fas fa-lightbulb me-2"></i>Get Insights
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Modals -->
+    <!-- Edit Budget Modal -->
+    <div class="modal fade" id="editBudgetModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Edit Budget Allocation</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="edit-budget-form">
+                        <input type="hidden" id="edit-category-id">
+                        <input type="hidden" id="edit-week-date">
+                        <div class="mb-3">
+                            <label class="form-label">Category</label>
+                            <input type="text" class="form-control" id="edit-category-name" readonly>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Amount</label>
+                            <input type="number" class="form-control" id="edit-amount" step="0.01" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Notes</label>
+                            <textarea class="form-control" id="edit-notes" rows="3"></textarea>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" id="save-edit-budget">Save Changes</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Expense Modal -->
+    <div class="modal fade" id="editExpenseModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Edit Expense</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="edit-expense-form">
+                        <input type="hidden" id="edit-expense-id">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Date</label>
+                                <input type="date" class="form-control" id="edit-expense-date" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Category</label>
+                                <select class="form-select" id="edit-expense-category" required>
+                                    <option value="">Select Category</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Amount</label>
+                                <input type="number" class="form-control" id="edit-expense-amount" step="0.01" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Payment Method</label>
+                                <select class="form-select" id="edit-expense-payment">
+                                    <option value="Cash">Cash</option>
+                                    <option value="GCash">GCash</option>
+                                    <option value="Maya">Maya</option>
+                                    <option value="BPI">BPI</option>
+                                    <option value="CIMB">CIMB</option>
+                                    <option value="UnoBank">UnoBank</option>
+                                    <option value="GoTyme">GoTyme</option>
+                                    <option value="GSave">GSave</option>
+                                    <option value="MayBank">MayBank</option>
+                                    <option value="Cebuana">Cebuana</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Description</label>
+                                <input type="text" class="form-control" id="edit-expense-description">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Location</label>
+                                <input type="text" class="form-control" id="edit-expense-location">
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" id="save-edit-expense">Save Changes</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.min.js"></script>
+    <script src="assets/js/app.js"></script>
+    <script>
+        // Initialize the application
+        const budgetPlanner = new BudgetPlanner();
+    </script>
+</body>
+</html>

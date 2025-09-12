@@ -1,0 +1,34 @@
+{
+  "name": "smart-budget-planner",
+  "version": "1.0.0",
+  "description": "A smart budget planner web application for managing ₱12,000 weekly salary",
+  "main": "index.js",
+  "scripts": {
+    "dev": "vercel dev",
+    "build": "echo 'No build step required'",
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "@vercel/node": "^3.0.0",
+    "mysql2": "^3.6.0",
+    "cors": "^2.8.5",
+    "helmet": "^7.0.0",
+    "express": "^4.18.2",
+    "dotenv": "^16.3.1",
+    "bcryptjs": "^2.4.3",
+    "jsonwebtoken": "^9.0.2"
+  },
+  "devDependencies": {
+    "vercel": "^32.0.0"
+  },
+  "keywords": [
+    "budget",
+    "planner",
+    "expense-tracker",
+    "personal-finance",
+    "vercel",
+    "serverless"
+  ],
+  "author": "Budget Planner Team",
+  "license": "MIT"
+}

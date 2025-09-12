@@ -1,0 +1,873 @@
+/**
+ * Smart Budget Planner - Main Application JavaScript
+ */
+
+class BudgetPlanner {
+    constructor() {
+        this.apiBase = 'api/';
+        this.currentWeek = this.getCurrentWeek();
+        this.categories = [];
+        this.budgetData = [];
+        this.expenseData = [];
+        this.charts = {};
+        
+        this.init();
+    }
+
+    init() {
+        this.setupEventListeners();
+        this.loadCategories();
+        this.loadDashboard();
+        this.setupDateInputs();
+    }
+
+    setupEventListeners() {
+        // Navigation
+        document.querySelectorAll('[data-section]').forEach(link => {
+            link.addEventListener('click', (e) => {
+                e.preventDefault();
+                this.showSection(link.dataset.section);
+            });
+        });
+
+        // Quick expense form
+        document.getElementById('quick-expense-form').addEventListener('submit', (e) => {
+            e.preventDefault();
+            this.addQuickExpense();
+        });
+
+        // Expense form
+        document.getElementById('expense-form').addEventListener('submit', (e) => {
+            e.preventDefault();
+            this.addExpense();
+        });
+
+        // Budget management
+        document.getElementById('load-budget-btn').addEventListener('click', () => {
+            this.loadBudget();
+        });
+
+        document.getElementById('save-budget-btn').addEventListener('click', () => {
+            this.saveBudget();
+        });
+
+        document.getElementById('smart-adjust-btn').addEventListener('click', () => {
+            this.getSmartReallocations();
+        });
+
+        document.getElementById('predict-next-btn').addEventListener('click', () => {
+            this.getPredictions();
+        });
+
+        // Smart features
+        document.getElementById('get-reallocations-btn').addEventListener('click', () => {
+            this.getSmartReallocations();
+        });
+
+        document.getElementById('get-predictions-btn').addEventListener('click', () => {
+            this.getPredictions();
+        });
+
+        document.getElementById('auto-adjust-btn').addEventListener('click', () => {
+            this.autoAdjustNextWeek();
+        });
+
+        document.getElementById('balance-budget-btn').addEventListener('click', () => {
+            this.balanceBudget();
+        });
+
+        document.getElementById('get-insights-btn').addEventListener('click', () => {
+            this.getInsights();
+        });
+
+        // Filter expenses
+        document.getElementById('filter-expenses-btn').addEventListener('click', () => {
+            this.filterExpenses();
+        });
+
+        // Modal events
+        document.getElementById('save-edit-budget').addEventListener('click', () => {
+            this.saveEditBudget();
+        });
+
+        document.getElementById('save-edit-expense').addEventListener('click', () => {
+            this.saveEditExpense();
+        });
+    }
+
+    setupDateInputs() {
+        const today = new Date();
+        const currentWeek = this.getCurrentWeek();
+        
+        // Set default dates
+        document.getElementById('budget-week-selector').value = currentWeek;
+        document.getElementById('expense-date').value = today.toISOString().split('T')[0];
+        document.getElementById('expense-date-filter').value = currentWeek;
+    }
+
+    getCurrentWeek() {
+        const today = new Date();
+        const dayOfWeek = today.getDay();
+        
+        // Calculate the Wednesday of current week
+        if (dayOfWeek === 3) { // Wednesday
+            return today.toISOString().split('T')[0];
+        } else {
+            const daysToWednesday = (dayOfWeek + 4) % 7;
+            const wednesday = new Date(today);
+            wednesday.setDate(today.getDate() - daysToWednesday);
+            return wednesday.toISOString().split('T')[0];
+        }
+    }
+
+    showSection(sectionName) {
+        // Update navigation
+        document.querySelectorAll('.nav-link').forEach(link => {
+            link.classList.remove('active');
+        });
+        document.querySelector(`[data-section="${sectionName}"]`).classList.add('active');
+
+        // Show section
+        document.querySelectorAll('.content-section').forEach(section => {
+            section.classList.remove('active');
+        });
+        document.getElementById(sectionName).classList.add('active');
+
+        // Load section-specific data
+        switch (sectionName) {
+            case 'dashboard':
+                this.loadDashboard();
+                break;
+            case 'budget':
+                this.loadBudget();
+                break;
+            case 'expenses':
+                this.loadExpenses();
+                break;
+            case 'analytics':
+                this.loadAnalytics();
+                break;
+            case 'smart':
+                this.loadSmartFeatures();
+                break;
+        }
+    }
+
+    async apiCall(endpoint, method = 'GET', data = null) {
+        try {
+            const options = {
+                method: method,
+                headers: {
+                    'Content-Type': 'application/json',
+                }
+            };
+
+            if (data) {
+                options.body = JSON.stringify(data);
+            }
+
+            const response = await fetch(this.apiBase + endpoint, options);
+            const result = await response.json();
+
+            if (!result.success) {
+                throw new Error(result.message || 'API call failed');
+            }
+
+            return result.data;
+        } catch (error) {
+            console.error('API Error:', error);
+            this.showAlert('error', 'Error: ' + error.message);
+            throw error;
+        }
+    }
+
+    async loadCategories() {
+        try {
+            this.categories = await this.apiCall('categories');
+            this.populateCategorySelects();
+        } catch (error) {
+            console.error('Failed to load categories:', error);
+        }
+    }
+
+    populateCategorySelects() {
+        const selects = [
+            'quick-category',
+            'expense-category',
+            'edit-expense-category'
+        ];
+
+        selects.forEach(selectId => {
+            const select = document.getElementById(selectId);
+            if (select) {
+                select.innerHTML = '<option value="">Select Category</option>';
+                this.categories.forEach(category => {
+                    const option = document.createElement('option');
+                    option.value = category.id;
+                    option.textContent = `${category.name} (${category.bank})`;
+                    select.appendChild(option);
+                });
+            }
+        });
+    }
+
+    async loadDashboard() {
+        try {
+            // Load current week budget
+            const budget = await this.apiCall('budget/current');
+            this.budgetData = budget;
+
+            // Load current week expenses
+            const expenses = await this.apiCall('expenses/current');
+            this.expenseData = expenses;
+
+            // Update dashboard stats
+            this.updateDashboardStats(budget, expenses);
+
+            // Load alerts
+            await this.loadAlerts();
+
+            // Create budget chart
+            this.createBudgetChart(budget);
+
+        } catch (error) {
+            console.error('Failed to load dashboard:', error);
+        }
+    }
+
+    updateDashboardStats(budget, expenses) {
+        const totalPlanned = budget.reduce((sum, item) => sum + parseFloat(item.planned_amount), 0);
+        const totalSpent = expenses.reduce((sum, item) => sum + parseFloat(item.amount), 0);
+        const remaining = 12000 - totalSpent;
+
+        document.getElementById('weekly-spent').textContent = `₱${totalSpent.toLocaleString()}`;
+        document.getElementById('remaining-budget').textContent = `₱${remaining.toLocaleString()}`;
+
+        // Calculate budget health
+        this.calculateBudgetHealth(totalSpent, totalPlanned);
+    }
+
+    async calculateBudgetHealth(totalSpent, totalPlanned) {
+        try {
+            const healthData = await this.apiCall('smart/health');
+            const healthScore = healthData.health_score;
+            
+            document.getElementById('health-score').textContent = `${healthScore}%`;
+            
+            // Update health indicator color
+            const healthElement = document.getElementById('health-score');
+            healthElement.className = 'mb-0';
+            if (healthScore >= 80) {
+                healthElement.classList.add('text-success');
+            } else if (healthScore >= 60) {
+                healthElement.classList.add('text-warning');
+            } else {
+                healthElement.classList.add('text-danger');
+            }
+        } catch (error) {
+            console.error('Failed to calculate budget health:', error);
+        }
+    }
+
+    async loadAlerts() {
+        try {
+            const alerts = await this.apiCall('smart/alerts');
+            this.displayAlerts(alerts);
+        } catch (error) {
+            console.error('Failed to load alerts:', error);
+        }
+    }
+
+    displayAlerts(alerts) {
+        const container = document.getElementById('alerts-container');
+        
+        if (alerts.length === 0) {
+            container.innerHTML = '<div class="text-center text-muted"><i class="fas fa-check-circle me-2"></i>No alerts at this time</div>';
+            return;
+        }
+
+        container.innerHTML = '';
+        alerts.forEach(alert => {
+            const alertDiv = document.createElement('div');
+            alertDiv.className = `alert alert-${alert.type === 'danger' ? 'danger' : alert.type === 'warning' ? 'warning' : 'info'} alert-dismissible fade show`;
+            alertDiv.innerHTML = `
+                <i class="fas fa-${alert.type === 'danger' ? 'exclamation-triangle' : alert.type === 'warning' ? 'exclamation-circle' : 'info-circle'} me-2"></i>
+                ${alert.message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            `;
+            container.appendChild(alertDiv);
+        });
+    }
+
+    createBudgetChart(budget) {
+        const ctx = document.getElementById('budget-chart').getContext('2d');
+        
+        if (this.charts.budget) {
+            this.charts.budget.destroy();
+        }
+
+        const labels = budget.map(item => item.category_name);
+        const plannedData = budget.map(item => parseFloat(item.planned_amount));
+        const spentData = budget.map(item => parseFloat(item.actual_amount || 0));
+
+        this.charts.budget = new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Planned Amount',
+                    data: plannedData,
+                    backgroundColor: [
+                        '#007bff', '#28a745', '#dc3545', '#ffc107', '#17a2b8',
+                        '#6f42c1', '#20c997', '#fd7e14', '#e83e8c', '#6c757d', '#343a40'
+                    ],
+                    borderWidth: 2,
+                    borderColor: '#fff'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            padding: 20,
+                            usePointStyle: true
+                        }
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                const label = context.label || '';
+                                const value = context.parsed;
+                                return `${label}: ₱${value.toLocaleString()}`;
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    async addQuickExpense() {
+        const categoryId = document.getElementById('quick-category').value;
+        const amount = document.getElementById('quick-amount').value;
+        const description = document.getElementById('quick-description').value;
+
+        if (!categoryId || !amount) {
+            this.showAlert('warning', 'Please fill in all required fields');
+            return;
+        }
+
+        try {
+            await this.apiCall('expenses/add', 'POST', {
+                week_date: this.currentWeek,
+                category_id: categoryId,
+                amount: amount,
+                description: description,
+                payment_method: 'Cash'
+            });
+
+            this.showAlert('success', 'Expense added successfully!');
+            document.getElementById('quick-expense-form').reset();
+            this.loadDashboard();
+        } catch (error) {
+            console.error('Failed to add expense:', error);
+        }
+    }
+
+    async addExpense() {
+        const formData = {
+            week_date: document.getElementById('expense-date').value,
+            category_id: document.getElementById('expense-category').value,
+            amount: document.getElementById('expense-amount').value,
+            description: document.getElementById('expense-description').value,
+            payment_method: document.getElementById('expense-payment').value,
+            location: document.getElementById('expense-location').value
+        };
+
+        if (!formData.category_id || !formData.amount) {
+            this.showAlert('warning', 'Please fill in all required fields');
+            return;
+        }
+
+        try {
+            await this.apiCall('expenses/add', 'POST', formData);
+            this.showAlert('success', 'Expense added successfully!');
+            document.getElementById('expense-form').reset();
+            this.loadExpenses();
+        } catch (error) {
+            console.error('Failed to add expense:', error);
+        }
+    }
+
+    async loadBudget() {
+        const weekDate = document.getElementById('budget-week-selector').value || this.currentWeek;
+        
+        try {
+            const budget = await this.apiCall(`budget/week?date=${weekDate}`);
+            this.displayBudget(budget);
+        } catch (error) {
+            console.error('Failed to load budget:', error);
+        }
+    }
+
+    displayBudget(budget) {
+        const tbody = document.getElementById('budget-table-body');
+        tbody.innerHTML = '';
+
+        if (budget.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="7" class="text-center text-muted">No budget data found for this week</td></tr>';
+            return;
+        }
+
+        budget.forEach(item => {
+            const remaining = parseFloat(item.planned_amount) - parseFloat(item.actual_amount || 0);
+            const variance = parseFloat(item.actual_amount || 0) - parseFloat(item.planned_amount);
+            
+            let statusClass = 'status-good';
+            let statusText = 'On Track';
+            
+            if (variance > 200) {
+                statusClass = 'status-danger';
+                statusText = 'Over Budget';
+            } else if (variance > 0) {
+                statusClass = 'status-warning';
+                statusText = 'Close to Limit';
+            }
+
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td>${item.category_name}</td>
+                <td>${item.bank}</td>
+                <td>₱${parseFloat(item.planned_amount).toLocaleString()}</td>
+                <td>₱${parseFloat(item.actual_amount || 0).toLocaleString()}</td>
+                <td class="${remaining < 0 ? 'text-danger' : 'text-success'}">₱${remaining.toLocaleString()}</td>
+                <td><span class="status-badge ${statusClass}">${statusText}</span></td>
+                <td>
+                    <button class="btn btn-sm btn-outline-primary" onclick="budgetPlanner.editBudget(${item.category_id}, '${item.week_date}', '${item.category_name}', ${item.planned_amount}, '${item.notes || ''}')">
+                        <i class="fas fa-edit"></i>
+                    </button>
+                </td>
+            `;
+            tbody.appendChild(row);
+        });
+    }
+
+    editBudget(categoryId, weekDate, categoryName, amount, notes) {
+        document.getElementById('edit-category-id').value = categoryId;
+        document.getElementById('edit-week-date').value = weekDate;
+        document.getElementById('edit-category-name').value = categoryName;
+        document.getElementById('edit-amount').value = amount;
+        document.getElementById('edit-notes').value = notes;
+
+        const modal = new bootstrap.Modal(document.getElementById('editBudgetModal'));
+        modal.show();
+    }
+
+    async saveEditBudget() {
+        const categoryId = document.getElementById('edit-category-id').value;
+        const weekDate = document.getElementById('edit-week-date').value;
+        const amount = document.getElementById('edit-amount').value;
+        const notes = document.getElementById('edit-notes').value;
+
+        try {
+            await this.apiCall('budget/week', 'POST', {
+                week_date: weekDate,
+                category_id: categoryId,
+                amount: amount,
+                notes: notes
+            });
+
+            this.showAlert('success', 'Budget updated successfully!');
+            bootstrap.Modal.getInstance(document.getElementById('editBudgetModal')).hide();
+            this.loadBudget();
+        } catch (error) {
+            console.error('Failed to update budget:', error);
+        }
+    }
+
+    async loadExpenses() {
+        const weekDate = document.getElementById('expense-date-filter').value || this.currentWeek;
+        
+        try {
+            const expenses = await this.apiCall(`expenses/week?date=${weekDate}`);
+            this.displayExpenses(expenses);
+        } catch (error) {
+            console.error('Failed to load expenses:', error);
+        }
+    }
+
+    displayExpenses(expenses) {
+        const tbody = document.getElementById('expenses-table-body');
+        tbody.innerHTML = '';
+
+        if (expenses.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="7" class="text-center text-muted">No expenses found for this week</td></tr>';
+            return;
+        }
+
+        expenses.forEach(expense => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td>${new Date(expense.week_date).toLocaleDateString()}</td>
+                <td>${expense.category_name}</td>
+                <td>${expense.description || '-'}</td>
+                <td>₱${parseFloat(expense.amount).toLocaleString()}</td>
+                <td>${expense.payment_method}</td>
+                <td>${expense.location || '-'}</td>
+                <td>
+                    <button class="btn btn-sm btn-outline-primary me-1" onclick="budgetPlanner.editExpense(${expense.id}, '${expense.week_date}', ${expense.category_id}, ${expense.amount}, '${expense.description || ''}', '${expense.payment_method}', '${expense.location || ''}')">
+                        <i class="fas fa-edit"></i>
+                    </button>
+                    <button class="btn btn-sm btn-outline-danger" onclick="budgetPlanner.deleteExpense(${expense.id})">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </td>
+            `;
+            tbody.appendChild(row);
+        });
+    }
+
+    editExpense(expenseId, date, categoryId, amount, description, paymentMethod, location) {
+        document.getElementById('edit-expense-id').value = expenseId;
+        document.getElementById('edit-expense-date').value = date;
+        document.getElementById('edit-expense-category').value = categoryId;
+        document.getElementById('edit-expense-amount').value = amount;
+        document.getElementById('edit-expense-description').value = description;
+        document.getElementById('edit-expense-payment').value = paymentMethod;
+        document.getElementById('edit-expense-location').value = location;
+
+        const modal = new bootstrap.Modal(document.getElementById('editExpenseModal'));
+        modal.show();
+    }
+
+    async saveEditExpense() {
+        const expenseId = document.getElementById('edit-expense-id').value;
+        const amount = document.getElementById('edit-expense-amount').value;
+        const description = document.getElementById('edit-expense-description').value;
+        const paymentMethod = document.getElementById('edit-expense-payment').value;
+        const location = document.getElementById('edit-expense-location').value;
+
+        try {
+            await this.apiCall('expenses/update', 'PUT', {
+                expense_id: expenseId,
+                amount: amount,
+                description: description,
+                payment_method: paymentMethod,
+                location: location
+            });
+
+            this.showAlert('success', 'Expense updated successfully!');
+            bootstrap.Modal.getInstance(document.getElementById('editExpenseModal')).hide();
+            this.loadExpenses();
+        } catch (error) {
+            console.error('Failed to update expense:', error);
+        }
+    }
+
+    async deleteExpense(expenseId) {
+        if (!confirm('Are you sure you want to delete this expense?')) {
+            return;
+        }
+
+        try {
+            await this.apiCall(`expenses/delete?id=${expenseId}`, 'DELETE');
+            this.showAlert('success', 'Expense deleted successfully!');
+            this.loadExpenses();
+        } catch (error) {
+            console.error('Failed to delete expense:', error);
+        }
+    }
+
+    async loadAnalytics() {
+        try {
+            // Load spending trends
+            const trends = await this.apiCall('analytics/trends');
+            this.createTrendsChart(trends);
+
+            // Load top categories
+            const topCategories = await this.apiCall('analytics/top-categories');
+            this.createCategoriesChart(topCategories);
+
+            // Load monthly forecast
+            const forecast = await this.apiCall('analytics/forecast');
+            this.createForecastChart(forecast);
+
+            // Load category breakdown
+            this.displayCategoryBreakdown(topCategories);
+
+            // Load savings recommendations
+            const recommendations = await this.apiCall('recommendations/savings');
+            this.displaySavingsRecommendations(recommendations);
+
+        } catch (error) {
+            console.error('Failed to load analytics:', error);
+        }
+    }
+
+    createTrendsChart(trends) {
+        const ctx = document.getElementById('trends-chart').getContext('2d');
+        
+        if (this.charts.trends) {
+            this.charts.trends.destroy();
+        }
+
+        const labels = trends.map(trend => new Date(trend.week_date).toLocaleDateString());
+        const data = trends.map(trend => parseFloat(trend.total_spent));
+
+        this.charts.trends = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Weekly Spending',
+                    data: data,
+                    borderColor: '#007bff',
+                    backgroundColor: 'rgba(0, 123, 255, 0.1)',
+                    tension: 0.4,
+                    fill: true
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            callback: function(value) {
+                                return '₱' + value.toLocaleString();
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    createCategoriesChart(categories) {
+        const ctx = document.getElementById('categories-chart').getContext('2d');
+        
+        if (this.charts.categories) {
+            this.charts.categories.destroy();
+        }
+
+        const labels = categories.slice(0, 5).map(cat => cat.category_name);
+        const data = categories.slice(0, 5).map(cat => parseFloat(cat.total_spent));
+
+        this.charts.categories = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Total Spent',
+                    data: data,
+                    backgroundColor: [
+                        '#007bff', '#28a745', '#dc3545', '#ffc107', '#17a2b8'
+                    ]
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            callback: function(value) {
+                                return '₱' + value.toLocaleString();
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    createForecastChart(forecast) {
+        const ctx = document.getElementById('forecast-chart').getContext('2d');
+        
+        if (this.charts.forecast) {
+            this.charts.forecast.destroy();
+        }
+
+        const labels = forecast.categories.slice(0, 5).map(cat => cat.category_name);
+        const data = forecast.categories.slice(0, 5).map(cat => parseFloat(cat.total_spent));
+
+        this.charts.forecast = new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: labels,
+                datasets: [{
+                    data: data,
+                    backgroundColor: [
+                        '#007bff', '#28a745', '#dc3545', '#ffc107', '#17a2b8'
+                    ]
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom'
+                    }
+                }
+            }
+        });
+    }
+
+    displayCategoryBreakdown(categories) {
+        const container = document.getElementById('category-breakdown');
+        container.innerHTML = '';
+
+        categories.forEach(category => {
+            const div = document.createElement('div');
+            div.className = 'd-flex justify-content-between align-items-center mb-2';
+            div.innerHTML = `
+                <span>${category.category_name}</span>
+                <span class="fw-bold">₱${parseFloat(category.total_spent).toLocaleString()}</span>
+            `;
+            container.appendChild(div);
+        });
+    }
+
+    displaySavingsRecommendations(recommendations) {
+        const container = document.getElementById('savings-recommendations');
+        container.innerHTML = '';
+
+        if (recommendations.length === 0) {
+            container.innerHTML = '<div class="text-muted">No specific recommendations at this time.</div>';
+            return;
+        }
+
+        recommendations.forEach(rec => {
+            const div = document.createElement('div');
+            div.className = 'alert alert-info';
+            div.innerHTML = `
+                <h6>${rec.category}</h6>
+                <p class="mb-0">${rec.suggestion}</p>
+                <small class="text-muted">Potential savings: ₱${parseFloat(rec.potential_savings).toLocaleString()}/week</small>
+            `;
+            container.appendChild(div);
+        });
+    }
+
+    async loadSmartFeatures() {
+        // Smart features are loaded on demand when buttons are clicked
+    }
+
+    async getSmartReallocations() {
+        try {
+            const reallocations = await this.apiCall('smart/reallocate');
+            this.displayReallocations(reallocations);
+        } catch (error) {
+            console.error('Failed to get reallocations:', error);
+        }
+    }
+
+    displayReallocations(reallocations) {
+        const container = document.getElementById('reallocations-container');
+        container.innerHTML = '';
+
+        if (reallocations.length === 0) {
+            container.innerHTML = '<div class="text-muted">No reallocation suggestions at this time.</div>';
+            return;
+        }
+
+        reallocations.forEach(rec => {
+            const div = document.createElement('div');
+            div.className = 'alert alert-info';
+            div.innerHTML = `
+                <h6>${rec.category}</h6>
+                <p class="mb-0">${rec.reason}</p>
+                ${rec.suggested_reduction ? `<small>Suggested reduction: ₱${parseFloat(rec.suggested_reduction).toLocaleString()}</small>` : ''}
+                ${rec.suggested_increase ? `<small>Suggested increase: ₱${parseFloat(rec.suggested_increase).toLocaleString()}</small>` : ''}
+            `;
+            container.appendChild(div);
+        });
+    }
+
+    async getPredictions() {
+        try {
+            const predictions = await this.apiCall('smart/predict');
+            this.displayPredictions(predictions);
+        } catch (error) {
+            console.error('Failed to get predictions:', error);
+        }
+    }
+
+    displayPredictions(predictions) {
+        const container = document.getElementById('predictions-container');
+        container.innerHTML = '';
+
+        predictions.forEach(pred => {
+            const div = document.createElement('div');
+            div.className = 'd-flex justify-content-between align-items-center mb-2 p-2 border rounded';
+            div.innerHTML = `
+                <span>${pred.category_name}</span>
+                <span class="fw-bold">₱${parseFloat(pred.suggested_amount).toLocaleString()}</span>
+            `;
+            container.appendChild(div);
+        });
+    }
+
+    async autoAdjustNextWeek() {
+        try {
+            const result = await this.apiCall('smart/adjust', 'POST', {
+                week_date: this.currentWeek
+            });
+            
+            this.showAlert('success', `Auto-adjusted ${result.adjustments_made} categories for next week!`);
+        } catch (error) {
+            console.error('Failed to auto-adjust:', error);
+        }
+    }
+
+    async balanceBudget() {
+        // This would implement budget balancing logic
+        this.showAlert('info', 'Budget balancing feature coming soon!');
+    }
+
+    async getInsights() {
+        // This would implement insights generation
+        this.showAlert('info', 'Smart insights feature coming soon!');
+    }
+
+    filterExpenses() {
+        this.loadExpenses();
+    }
+
+    showAlert(type, message) {
+        const alertDiv = document.createElement('div');
+        alertDiv.className = `alert alert-${type} alert-dismissible fade show position-fixed`;
+        alertDiv.style.cssText = 'top: 100px; right: 20px; z-index: 9999; min-width: 300px;';
+        alertDiv.innerHTML = `
+            ${message}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        `;
+        
+        document.body.appendChild(alertDiv);
+        
+        // Auto-remove after 5 seconds
+        setTimeout(() => {
+            if (alertDiv.parentNode) {
+                alertDiv.parentNode.removeChild(alertDiv);
+            }
+        }, 5000);
+    }
+}
+
+// BudgetPlanner class is defined above
