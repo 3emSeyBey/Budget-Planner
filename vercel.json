@@ -24,6 +24,10 @@
       "dest": "/api/setup.js"
     },
     {
+      "src": "/api/debug-db",
+      "dest": "/api/debug-db.js"
+    },
+    {
       "src": "/api/categories",
       "dest": "/api/categories.js"
     },

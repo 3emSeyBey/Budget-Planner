@@ -51,6 +51,15 @@ module.exports = async (req, res) => {
       
       console.log(`Found ${statements.length} SQL statements to execute`);
       
+      // First, ensure we're using the correct database
+      try {
+        const dbName = process.env.DB_NAME || 'budget_planner';
+        await query(`USE ${dbName}`);
+        console.log(`Using database: ${dbName}`);
+      } catch (dbError) {
+        console.warn('Could not select database, continuing with current database:', dbError.message);
+      }
+      
       let executedStatements = 0;
       let errors = [];
       let warnings = [];
@@ -83,6 +92,14 @@ module.exports = async (req, res) => {
       
       console.log(`Schema execution completed: ${executedStatements} statements executed, ${errors.length} errors, ${warnings.length} warnings`);
       
+      // Check current database first
+      try {
+        const [dbResult] = await query('SELECT DATABASE() as current_db');
+        console.log('Current database:', dbResult[0]?.current_db);
+      } catch (dbError) {
+        console.error('Error getting current database:', dbError.message);
+      }
+
       // Verify tables were created
       const tableCheck = await verifyTables();
       console.log('Table verification result:', tableCheck);

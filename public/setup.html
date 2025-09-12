@@ -80,6 +80,10 @@
             <button class="btn btn-setup" onclick="setupDatabase()">
                 <i class="fas fa-cog me-2"></i>Initialize Database
             </button>
+            
+            <button class="btn btn-info" onclick="debugDatabase()" style="margin-left: 10px;">
+                <i class="fas fa-bug me-2"></i>Debug Database
+            </button>
         </div>
         
         <div id="status" class="status"></div>
@@ -219,6 +223,51 @@
                     btn.disabled = false;
                 });
             }
+        }
+
+        async function debugDatabase() {
+            const status = document.getElementById('status');
+            status.style.display = 'none';
+            
+            try {
+                status.className = 'status info';
+                status.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Debugging database connection...';
+                status.style.display = 'block';
+                
+                const response = await fetch('/api/debug-db', {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    status.className = 'status success';
+                    status.innerHTML = `
+                        <i class="fas fa-check-circle me-2"></i>
+                        <strong>Debug Results:</strong><br>
+                        <strong>Connection:</strong> ${result.debug.connection}<br>
+                        <strong>Current Database:</strong> ${result.debug.current_database || 'Unknown'}<br>
+                        <strong>Available Databases:</strong> ${result.debug.databases ? result.debug.databases.join(', ') : 'None'}<br>
+                        <strong>Tables in Current DB:</strong> ${result.debug.tables ? result.debug.tables.join(', ') : 'None'}<br>
+                        <strong>CREATE TABLE Test:</strong> ${result.debug.create_table_test}<br>
+                        <strong>Test Table Exists:</strong> ${result.debug.test_table_exists ? 'Yes' : 'No'}<br>
+                        ${result.debug.errors && result.debug.errors.length > 0 ? `<strong>Errors:</strong> ${result.debug.errors.join('<br>')}` : ''}
+                    `;
+                } else {
+                    throw new Error(result.message || 'Debug failed');
+                }
+            } catch (error) {
+                status.className = 'status error';
+                status.innerHTML = `
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    <strong>Debug Error:</strong> ${error.message}
+                `;
+            }
+            
+            status.style.display = 'block';
         }
     </script>
 </body>
