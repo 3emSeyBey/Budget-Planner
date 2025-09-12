@@ -53,7 +53,7 @@ module.exports = async (req, res) => {
       
       // First, ensure we're using the correct database
       try {
-        const dbName = process.env.DB_NAME || 'budget_planner';
+        const dbName = process.env.DB_NAME || 'test';
         await query(`USE ${dbName}`);
         console.log(`Using database: ${dbName}`);
       } catch (dbError) {
