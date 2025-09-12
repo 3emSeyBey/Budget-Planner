@@ -60,6 +60,46 @@
       "dest": "/api/smart/health.js"
     },
     {
+      "src": "/api/smart/predict",
+      "dest": "/api/smart/predict.js"
+    },
+    {
+      "src": "/api/smart/reallocate",
+      "dest": "/api/smart/reallocate.js"
+    },
+    {
+      "src": "/api/smart/adjust",
+      "dest": "/api/smart/adjust.js"
+    },
+    {
+      "src": "/api/expenses/week",
+      "dest": "/api/expenses/week.js"
+    },
+    {
+      "src": "/api/expenses/update",
+      "dest": "/api/expenses/update.js"
+    },
+    {
+      "src": "/api/expenses/delete",
+      "dest": "/api/expenses/delete.js"
+    },
+    {
+      "src": "/api/analytics/trends",
+      "dest": "/api/analytics/trends.js"
+    },
+    {
+      "src": "/api/analytics/top-categories",
+      "dest": "/api/analytics/top-categories.js"
+    },
+    {
+      "src": "/api/analytics/forecast",
+      "dest": "/api/analytics/forecast.js"
+    },
+    {
+      "src": "/api/recommendations/savings",
+      "dest": "/api/recommendations/savings.js"
+    },
+    {
       "src": "/(.*)",
       "dest": "/public/$1"
     }
