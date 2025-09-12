@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PWA Icon Generator</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #1a1a1a;
+            color: white;
+        }
+        .icon-preview {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }
+        .icon-item {
+            text-align: center;
+            padding: 10px;
+            border: 1px solid #333;
+            border-radius: 8px;
+        }
+        canvas {
+            border: 1px solid #555;
+            margin: 10px 0;
+        }
+        button {
+            background: #0d6efd;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background: #0b5ed7;
+        }
+    </style>
+</head>
+<body>
+    <h1>🎨 PWA Icon Generator</h1>
+    <p>This tool generates all the required PWA icons for your Budget Planner app.</p>
+    
+    <div class="icon-preview" id="iconPreview">
+        <!-- Icons will be generated here -->
+    </div>
+    
+    <button onclick="generateAllIcons()">Generate All Icons</button>
+    <button onclick="downloadAllIcons()">Download All Icons</button>
+    
+    <script>
+        const sizes = [16, 32, 72, 96, 128, 144, 152, 192, 384, 512];
+        
+        function createIcon(size) {
+            const canvas = document.createElement('canvas');
+            canvas.width = size;
+            canvas.height = size;
+            const ctx = canvas.getContext('2d');
+            
+            // Background
+            ctx.fillStyle = '#1a1a1a';
+            ctx.fillRect(0, 0, size, size);
+            
+            // Border
+            ctx.strokeStyle = '#0d6efd';
+            ctx.lineWidth = Math.max(1, size / 32);
+            ctx.strokeRect(2, 2, size - 4, size - 4);
+            
+            // Wallet icon
+            const iconSize = size * 0.6;
+            const iconX = (size - iconSize) / 2;
+            const iconY = (size - iconSize) / 2;
+            
+            // Wallet body
+            ctx.fillStyle = '#0d6efd';
+            ctx.fillRect(iconX, iconY + iconSize * 0.3, iconSize, iconSize * 0.4);
+            
+            // Wallet fold
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(iconX, iconY, iconSize, iconSize * 0.2);
+            
+            // Wallet details
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(iconX + iconSize * 0.1, iconY + iconSize * 0.1, iconSize * 0.8, iconSize * 0.05);
+            ctx.fillRect(iconX + iconSize * 0.1, iconY + iconSize * 0.4, iconSize * 0.8, iconSize * 0.05);
+            
+            // Dollar sign
+            ctx.fillStyle = '#ffffff';
+            ctx.font = `bold ${size * 0.3}px Arial`;
+            ctx.textAlign = 'center';
+            ctx.fillText('$', size / 2, iconY + iconSize * 0.7);
+            
+            return canvas;
+        }
+        
+        function generateAllIcons() {
+            const preview = document.getElementById('iconPreview');
+            preview.innerHTML = '';
+            
+            sizes.forEach(size => {
+                const iconItem = document.createElement('div');
+                iconItem.className = 'icon-item';
+                
+                const canvas = createIcon(size);
+                canvas.id = `icon-${size}`;
+                
+                const label = document.createElement('div');
+                label.textContent = `${size}x${size}px`;
+                
+                iconItem.appendChild(canvas);
+                iconItem.appendChild(label);
+                preview.appendChild(iconItem);
+            });
+        }
+        
+        function downloadAllIcons() {
+            sizes.forEach(size => {
+                const canvas = document.getElementById(`icon-${size}`);
+                if (canvas) {
+                    const link = document.createElement('a');
+                    link.download = `icon-${size}x${size}.png`;
+                    link.href = canvas.toDataURL();
+                    link.click();
+                }
+            });
+        }
+        
+        // Generate icons on page load
+        window.onload = generateAllIcons;
+    </script>
+</body>
+</html>
