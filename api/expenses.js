@@ -86,16 +86,16 @@ module.exports = async (req, res) => {
       }
     } else if (req.method === 'PUT') {
       if (type === 'update') {
-        const { expense_id, amount, description, payment_method, location } = req.body;
+        const { expense_id, week_date, category_id, amount, description, payment_method, location } = req.body;
         
-        if (!expense_id || !amount) {
+        if (!expense_id || !week_date || !category_id || !amount) {
           return res.status(400).json({
             success: false,
-            message: 'Expense ID and amount are required'
+            message: 'Expense ID, week date, category ID, and amount are required'
           });
         }
 
-        const result = await expenseTracker.updateExpense(expense_id, amount, description, payment_method, location);
+        const result = await expenseTracker.updateExpense(expense_id, week_date, category_id, amount, description, payment_method, location);
         
         if (result) {
           res.status(200).json({

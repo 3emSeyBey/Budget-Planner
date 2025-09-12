@@ -180,13 +180,17 @@
                             <div class="card-body">
                                 <form id="quick-expense-form">
                                     <div class="row">
-                                        <div class="col-md-6 mb-3">
+                                        <div class="col-md-4 mb-3">
+                                            <label class="form-label">Date</label>
+                                            <input type="date" class="form-control" id="quick-date" required>
+                                        </div>
+                                        <div class="col-md-4 mb-3">
                                             <label class="form-label">Category</label>
                                             <select class="form-select" id="quick-category" required>
                                                 <option value="">Select Category</option>
                                             </select>
                                         </div>
-                                        <div class="col-md-6 mb-3">
+                                        <div class="col-md-4 mb-3">
                                             <label class="form-label">Amount</label>
                                             <input type="number" class="form-control" id="quick-amount" step="0.01" required>
                                         </div>
@@ -303,6 +307,7 @@
                                                 <th>Category</th>
                                                 <th>Bank</th>
                                                 <th>Planned Amount</th>
+                                                <th>Action Plan</th>
                                                 <th>Actual Spent</th>
                                                 <th>Remaining</th>
                                                 <th>Status</th>
@@ -312,7 +317,7 @@
                                         </thead>
                                         <tbody id="budget-table-body">
                                             <tr>
-                                                <td colspan="8" class="text-center text-muted">
+                                                <td colspan="9" class="text-center text-muted">
                                                     <i class="fas fa-spinner fa-spin"></i> Loading budget data...
                                                 </td>
                                             </tr>

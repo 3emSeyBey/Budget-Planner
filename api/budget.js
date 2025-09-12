@@ -47,7 +47,7 @@ module.exports = async (req, res) => {
       });
     } else if (req.method === 'POST') {
       if (type === 'week') {
-        const { week_date, category_id, amount, notes } = req.body;
+        const { week_date, category_id, amount, action_plan, notes } = req.body;
         
         if (!week_date || !category_id || !amount) {
           return res.status(400).json({
@@ -56,7 +56,7 @@ module.exports = async (req, res) => {
           });
         }
 
-        const result = await budgetManager.setWeeklyBudget(week_date, category_id, amount, notes);
+        const result = await budgetManager.setWeeklyBudget(week_date, category_id, amount, action_plan || 'spend', notes);
         
         res.status(200).json({
           success: true,

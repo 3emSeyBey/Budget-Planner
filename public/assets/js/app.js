@@ -113,6 +113,9 @@ class BudgetPlanner {
         document.getElementById('expense-date').value = today.toISOString().split('T')[0];
         document.getElementById('expense-date-filter').value = currentWeek;
         
+        // Set default date for quick expense form (PHT timezone)
+        this.setDefaultQuickExpenseDate();
+        
         // Setup week selector with week numbers
         this.setupWeekSelector();
     }
@@ -191,6 +194,23 @@ class BudgetPlanner {
 
     formatDateForAPI(date) {
         // Format date as YYYY-MM-DD without timezone conversion
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
+    }
+
+    getPHTDate() {
+        // Get current date in Philippines timezone (UTC+8)
+        const now = new Date();
+        const phtOffset = 8 * 60; // UTC+8 in minutes
+        const utc = now.getTime() + (now.getTimezoneOffset() * 60000);
+        const phtTime = new Date(utc + (phtOffset * 60000));
+        return phtTime;
+    }
+
+    formatDateForInput(date) {
+        // Format date for HTML date input (YYYY-MM-DD)
         const year = date.getFullYear();
         const month = String(date.getMonth() + 1).padStart(2, '0');
         const day = String(date.getDate()).padStart(2, '0');
@@ -703,18 +723,23 @@ class BudgetPlanner {
     }
 
     async addQuickExpense() {
+        const date = document.getElementById('quick-date').value;
         const categoryId = document.getElementById('quick-category').value;
         const amount = document.getElementById('quick-amount').value;
         const description = document.getElementById('quick-description').value;
 
-        if (!categoryId || !amount) {
+        if (!date || !categoryId || !amount) {
             this.showAlert('warning', 'Please fill in all required fields');
             return;
         }
 
         try {
+            // Determine which week this expense belongs to
+            const expenseDate = new Date(date);
+            const weekDate = this.getWeekDateForExpense(expenseDate);
+
             await this.apiCall('expenses?type=add', 'POST', {
-                week_date: this.currentWeek,
+                week_date: weekDate,
                 category_id: categoryId,
                 amount: amount,
                 description: description,
@@ -723,10 +748,26 @@ class BudgetPlanner {
 
             this.showAlert('success', 'Expense added successfully!');
             document.getElementById('quick-expense-form').reset();
+            this.setDefaultQuickExpenseDate();
             this.loadDashboard();
         } catch (error) {
             console.error('Failed to add expense:', error);
         }
+    }
+
+    getWeekDateForExpense(expenseDate) {
+        // Calculate which Wednesday this expense belongs to
+        const dayOfWeek = expenseDate.getDay();
+        const daysToWednesday = (dayOfWeek + 4) % 7;
+        const wednesday = new Date(expenseDate);
+        wednesday.setDate(expenseDate.getDate() - daysToWednesday);
+        return this.formatDateForAPI(wednesday);
+    }
+
+    setDefaultQuickExpenseDate() {
+        // Set default date to today in PHT timezone
+        const todayPHT = this.getPHTDate();
+        document.getElementById('quick-date').value = this.formatDateForInput(todayPHT);
     }
 
     updateWeekEndDate(startDate) {
@@ -786,7 +827,7 @@ class BudgetPlanner {
         tbody.innerHTML = '';
 
         if (budget.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="8" class="text-center text-muted">No budget data found for this week</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="9" class="text-center text-muted">No budget data found for this week</td></tr>';
             return;
         }
 
@@ -810,10 +851,23 @@ class BudgetPlanner {
             }
 
             const row = document.createElement('tr');
+            const actionPlan = item.action_plan || 'spend';
+            const actionPlanClass = actionPlan === 'save' ? 'text-success' : 'text-primary';
+            const actionPlanIcon = actionPlan === 'save' ? 'fas fa-piggy-bank' : 'fas fa-shopping-cart';
+            
             row.innerHTML = `
                 <td>${item.category_name}</td>
                 <td>${item.bank}</td>
                 <td>₱${parseFloat(item.planned_amount).toLocaleString()}</td>
+                <td>
+                    <select class="form-select form-select-sm action-plan-select" 
+                            data-category-id="${item.category_id}" 
+                            data-week-date="${item.week_date}"
+                            style="min-width: 100px;">
+                        <option value="spend" ${actionPlan === 'spend' ? 'selected' : ''}>Spend</option>
+                        <option value="save" ${actionPlan === 'save' ? 'selected' : ''}>Save</option>
+                    </select>
+                </td>
                 <td>₱${parseFloat(item.actual_amount || 0).toLocaleString()}</td>
                 <td class="${remaining < 0 ? 'text-danger' : 'text-success'}">₱${remaining.toLocaleString()}</td>
                 <td><span class="status-badge ${statusClass}">${statusText}</span></td>
@@ -829,6 +883,39 @@ class BudgetPlanner {
 
         // Add totals row
         await this.addBudgetTotalsRow(budget, tbody);
+        
+        // Add event listeners for action plan dropdowns
+        this.setupActionPlanListeners();
+    }
+
+    setupActionPlanListeners() {
+        const actionPlanSelects = document.querySelectorAll('.action-plan-select');
+        actionPlanSelects.forEach(select => {
+            select.addEventListener('change', (e) => {
+                this.updateActionPlan(e.target);
+            });
+        });
+    }
+
+    async updateActionPlan(select) {
+        const categoryId = select.dataset.categoryId;
+        const weekDate = select.dataset.weekDate;
+        const actionPlan = select.value;
+
+        try {
+            await this.apiCall('budget?type=week', 'POST', {
+                week_date: weekDate,
+                category_id: categoryId,
+                amount: 0, // We're only updating action_plan, not amount
+                action_plan: actionPlan,
+                notes: 'Action plan updated'
+            });
+
+            this.showAlert('success', 'Action plan updated successfully!');
+        } catch (error) {
+            console.error('Failed to update action plan:', error);
+            this.showAlert('error', 'Failed to update action plan. Please try again.');
+        }
     }
 
     async addBudgetTotalsRow(budget, tbody) {
@@ -848,6 +935,7 @@ class BudgetPlanner {
             <td><strong>TOTAL</strong></td>
             <td><strong>All Banks</strong></td>
             <td><strong>₱${totalPlanned.toLocaleString()}</strong></td>
+            <td><strong>-</strong></td>
             <td><strong>₱${totalActual.toLocaleString()}</strong></td>
             <td class="${totalRemaining < 0 ? 'text-danger' : 'text-success'}"><strong>₱${totalRemaining.toLocaleString()}</strong></td>
             <td>
@@ -1002,29 +1090,64 @@ class BudgetPlanner {
         });
     }
 
-    editExpense(expenseId, date, categoryId, amount, description, paymentMethod, location) {
+    async editExpense(expenseId, date, categoryId, amount, description, paymentMethod, location) {
         document.getElementById('edit-expense-id').value = expenseId;
         document.getElementById('edit-expense-date').value = date;
-        document.getElementById('edit-expense-category').value = categoryId;
         document.getElementById('edit-expense-amount').value = amount;
         document.getElementById('edit-expense-description').value = description;
         document.getElementById('edit-expense-payment').value = paymentMethod;
         document.getElementById('edit-expense-location').value = location;
 
+        // Load categories for the dropdown
+        await this.loadCategoriesForEditModal();
+        
+        // Set the selected category after categories are loaded
+        document.getElementById('edit-expense-category').value = categoryId;
+
         const modal = new bootstrap.Modal(document.getElementById('editExpenseModal'));
         modal.show();
     }
 
+    async loadCategoriesForEditModal() {
+        try {
+            const categories = await this.apiCall('categories');
+            const select = document.getElementById('edit-expense-category');
+            select.innerHTML = '<option value="">Select Category</option>';
+            
+            categories.forEach(category => {
+                const option = document.createElement('option');
+                option.value = category.id;
+                option.textContent = category.name;
+                select.appendChild(option);
+            });
+        } catch (error) {
+            console.error('Failed to load categories for edit modal:', error);
+        }
+    }
+
     async saveEditExpense() {
         const expenseId = document.getElementById('edit-expense-id').value;
+        const date = document.getElementById('edit-expense-date').value;
+        const categoryId = document.getElementById('edit-expense-category').value;
         const amount = document.getElementById('edit-expense-amount').value;
         const description = document.getElementById('edit-expense-description').value;
         const paymentMethod = document.getElementById('edit-expense-payment').value;
         const location = document.getElementById('edit-expense-location').value;
 
+        if (!date || !categoryId || !amount) {
+            this.showAlert('warning', 'Please fill in all required fields');
+            return;
+        }
+
         try {
+            // Calculate which week this expense belongs to based on the new date
+            const expenseDate = new Date(date);
+            const weekDate = this.getWeekDateForExpense(expenseDate);
+
             await this.apiCall('expenses?type=update', 'PUT', {
                 expense_id: expenseId,
+                week_date: weekDate,
+                category_id: categoryId,
                 amount: amount,
                 description: description,
                 payment_method: paymentMethod,
@@ -1036,6 +1159,7 @@ class BudgetPlanner {
             this.loadExpenses();
         } catch (error) {
             console.error('Failed to update expense:', error);
+            this.showAlert('error', 'Failed to update expense. Please try again.');
         }
     }
 

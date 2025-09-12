@@ -19,6 +19,7 @@ CREATE TABLE IF NOT EXISTS weekly_budgets (
     category_id INT NOT NULL,
     planned_amount DECIMAL(10,2) NOT NULL DEFAULT 0,
     actual_amount DECIMAL(10,2) DEFAULT 0,
+    action_plan ENUM('spend', 'save') DEFAULT 'spend',
     status ENUM('planned', 'active', 'completed') DEFAULT 'planned',
     notes TEXT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
