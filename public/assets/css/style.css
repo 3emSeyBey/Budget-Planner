@@ -147,6 +147,14 @@ body {
     color: var(--text-primary);
 }
 
+.table tbody tr {
+    background-color: var(--bg-secondary);
+}
+
+.table tbody tr:nth-child(even) {
+    background-color: var(--bg-tertiary);
+}
+
 .table thead th {
     background-color: var(--bg-tertiary);
     border-bottom: 2px solid var(--border-color);
@@ -257,6 +265,62 @@ body {
     font-weight: 500;
 }
 
+/* Specific fixes for form labels */
+label {
+    color: var(--text-primary) !important;
+}
+
+/* Quick add expense form labels */
+#quick-category + label,
+#quick-amount + label,
+#quick-description + label {
+    color: var(--text-primary) !important;
+}
+
+/* All form labels in cards */
+.card .form-label,
+.card label {
+    color: var(--text-primary) !important;
+}
+
+/* Fix all text elements in dark theme */
+h1, h2, h3, h4, h5, h6 {
+    color: var(--text-primary) !important;
+}
+
+p, span, div, small {
+    color: var(--text-primary);
+}
+
+/* Specific fixes for expense tracking labels */
+#expense-category + label,
+#expense-amount + label,
+#expense-description + label,
+#expense-date + label,
+#expense-payment-method + label,
+#expense-location + label {
+    color: var(--text-primary) !important;
+}
+
+/* Fix all form text */
+.form-text {
+    color: var(--text-muted) !important;
+}
+
+/* Fix small text elements */
+small, .small {
+    color: var(--text-muted) !important;
+}
+
+/* Fix card titles and headers */
+.card-title {
+    color: var(--text-primary) !important;
+}
+
+.card-subtitle {
+    color: var(--text-secondary) !important;
+}
+
 /* Week selector styling */
 #budget-week-selector {
     min-width: 200px;
@@ -360,6 +424,53 @@ body {
 
 .bg-dark {
     background-color: var(--bg-primary) !important;
+}
+
+/* Override Bootstrap default colors for dark theme */
+.text-dark {
+    color: var(--text-primary) !important;
+}
+
+.text-light {
+    color: var(--text-primary) !important;
+}
+
+/* Fix any remaining white text on white background issues */
+.table td, .table th {
+    color: var(--text-primary) !important;
+}
+
+/* Fix form control groups */
+.input-group-text {
+    background-color: var(--bg-tertiary);
+    border-color: var(--border-color);
+    color: var(--text-primary);
+}
+
+/* Fix dropdown menus */
+.dropdown-menu {
+    background-color: var(--bg-secondary);
+    border-color: var(--border-color);
+}
+
+.dropdown-item {
+    color: var(--text-primary);
+}
+
+.dropdown-item:hover {
+    background-color: var(--bg-tertiary);
+    color: var(--text-primary);
+}
+
+/* Fix any remaining text visibility issues */
+.btn-outline-primary {
+    color: var(--primary-color);
+    border-color: var(--primary-color);
+}
+
+.btn-outline-primary:hover {
+    background-color: var(--primary-color);
+    color: white;
 }
 
 .form-control:focus, .form-select:focus {

@@ -215,6 +215,9 @@ class BudgetPlanner {
     }
 
     setupCurrentWeekTracking() {
+        // Initialize current week display immediately
+        this.updateCurrentWeekUI();
+        
         // Check for current week every minute
         setInterval(() => {
             this.checkCurrentWeek();
