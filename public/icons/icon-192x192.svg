@@ -1,0 +1,8 @@
+
+    <svg width="192" height="192" xmlns="http://www.w3.org/2000/svg">
+        <rect width="192" height="192" fill="#1a1a1a"/>
+        <rect x="2" y="2" width="188" height="188" fill="none" stroke="#0d6efd" stroke-width="6"/>
+        <rect x="38.400000000000006" y="67.19999999999999" width="115.19999999999999" height="57.599999999999994" fill="#0d6efd"/>
+        <rect x="38.400000000000006" y="38.400000000000006" width="115.19999999999999" height="28.799999999999997" fill="#ffffff"/>
+        <text x="96" y="134.39999999999998" font-family="Arial" font-size="57.599999999999994" font-weight="bold" fill="#ffffff" text-anchor="middle">$</text>
+    </svg>
