@@ -126,6 +126,7 @@ This guide will help you deploy the Smart Budget Planner as a serverless applica
    ```bash
    vercel env add DATABASE_URL
    # Paste your database connection string when prompted
+   # Example: mysql://username:password@host:port/database_name?ssl={"rejectUnauthorized":true}
    ```
 
 5. **Redeploy with environment variables**:
@@ -143,9 +144,13 @@ This guide will help you deploy the Smart Budget Planner as a serverless applica
    - Vercel will automatically detect it's a Node.js project
 
 3. **Set environment variables**:
-   - Go to your project settings
-   - Navigate to "Environment Variables"
-   - Add `DATABASE_URL` with your database connection string
+   - Go to your project settings in Vercel dashboard
+   - Navigate to "Environment Variables" tab
+   - Click "Add New"
+   - Name: `DATABASE_URL`
+   - Value: Your database connection string
+   - Environment: Production, Preview, Development (select all)
+   - Click "Save"
 
 4. **Deploy**: Vercel will automatically deploy on every push to main branch
 
@@ -221,12 +226,17 @@ Your deployed application will have these endpoints:
 
 ### Common Issues
 
-1. **Database Connection Errors**:
+1. **Environment Variable "DATABASE_URL" references Secret error**:
+   - **Solution**: Remove any `@secret_name` references from `vercel.json`
+   - Set `DATABASE_URL` directly in Vercel dashboard under Environment Variables
+   - Don't use the `env` section in `vercel.json` for this project
+
+2. **Database Connection Errors**:
    - Verify your `DATABASE_URL` is correct
    - Ensure your database allows connections from Vercel's IP ranges
    - Check if SSL is required (most cloud databases require it)
 
-2. **CORS Errors**:
+3. **CORS Errors**:
    - The API endpoints include CORS headers
    - If you're still getting CORS errors, check your browser's developer console
 
