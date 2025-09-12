@@ -440,6 +440,64 @@ small, .small {
     color: var(--text-primary) !important;
 }
 
+/* Force all table text to be visible */
+.table * {
+    color: var(--text-primary) !important;
+}
+
+/* Specific table cell overrides */
+.table tbody tr td,
+.table tbody tr th,
+.table thead tr td,
+.table thead tr th {
+    color: var(--text-primary) !important;
+}
+
+/* Fix any nested elements in table cells */
+.table td span,
+.table td div,
+.table td p,
+.table td strong,
+.table td small,
+.table th span,
+.table th div,
+.table th p,
+.table th strong,
+.table th small {
+    color: var(--text-primary) !important;
+}
+
+/* Specific fixes for budget allocation table */
+.table tbody td,
+.table tbody th,
+.table thead td,
+.table thead th {
+    color: var(--text-primary) !important;
+    background-color: transparent !important;
+}
+
+/* Fix table cells specifically */
+.table tbody tr td {
+    color: var(--text-primary) !important;
+    background-color: inherit !important;
+}
+
+.table tbody tr:nth-child(even) td {
+    color: var(--text-primary) !important;
+    background-color: var(--bg-tertiary) !important;
+}
+
+/* Fix any Bootstrap table overrides */
+.table-striped tbody tr:nth-of-type(odd) td {
+    color: var(--text-primary) !important;
+    background-color: var(--bg-secondary) !important;
+}
+
+.table-striped tbody tr:nth-of-type(even) td {
+    color: var(--text-primary) !important;
+    background-color: var(--bg-tertiary) !important;
+}
+
 /* Fix form control groups */
 .input-group-text {
     background-color: var(--bg-tertiary);
@@ -471,6 +529,82 @@ small, .small {
 .btn-outline-primary:hover {
     background-color: var(--primary-color);
     color: white;
+}
+
+/* Nuclear option for table text visibility */
+table, table *, 
+.table, .table *,
+tbody, tbody *,
+thead, thead *,
+tr, tr *,
+td, td *,
+th, th * {
+    color: var(--text-primary) !important;
+}
+
+/* Specific budget table targeting */
+#budget-table,
+#budget-table *,
+#budget-table td,
+#budget-table th,
+#budget-table tr,
+#budget-table tbody,
+#budget-table thead {
+    color: var(--text-primary) !important;
+}
+
+/* Fix table-hover class */
+.table-hover tbody tr:hover td,
+.table-hover tbody tr:hover th {
+    color: var(--text-primary) !important;
+    background-color: var(--bg-tertiary) !important;
+}
+
+/* Fix any Bootstrap table classes */
+.table-hover tbody tr:hover {
+    background-color: var(--bg-tertiary) !important;
+}
+
+.table-hover tbody tr:hover * {
+    color: var(--text-primary) !important;
+}
+
+/* Override any potential white text */
+.text-white {
+    color: var(--text-primary) !important;
+}
+
+/* Force visibility on all text elements */
+* {
+    color: inherit;
+}
+
+body, body * {
+    color: var(--text-primary);
+}
+
+/* Ultimate fix for budget table text visibility */
+.table-responsive .table,
+.table-responsive .table *,
+.table-responsive .table td,
+.table-responsive .table th,
+.table-responsive .table tr,
+.table-responsive .table tbody,
+.table-responsive .table thead {
+    color: var(--text-primary) !important;
+}
+
+/* Force all text in budget management section to be visible */
+#budget-management *,
+#budget-management table *,
+#budget-management .table * {
+    color: var(--text-primary) !important;
+}
+
+/* Override any potential CSS inheritance issues */
+.card .table,
+.card .table * {
+    color: var(--text-primary) !important;
 }
 
 .form-control:focus, .form-select:focus {
