@@ -42,30 +42,50 @@ module.exports = async (req, res) => {
 
       const schema = fs.readFileSync(schemaPath, 'utf8');
       
-      // Split SQL into individual statements
+      // Split SQL into individual statements and clean them
       const statements = schema
         .split(';')
         .map(stmt => stmt.trim())
-        .filter(stmt => stmt.length > 0 && !stmt.startsWith('--'));
+        .filter(stmt => stmt.length > 0 && !stmt.startsWith('--') && !stmt.startsWith('/*'))
+        .map(stmt => stmt.replace(/\s+/g, ' ').trim());
+      
+      console.log(`Found ${statements.length} SQL statements to execute`);
       
       let executedStatements = 0;
       let errors = [];
+      let warnings = [];
       
-      for (const statement of statements) {
+      for (let i = 0; i < statements.length; i++) {
+        const statement = statements[i];
+        if (!statement) continue;
+        
         try {
+          console.log(`Executing statement ${i + 1}: ${statement.substring(0, 50)}...`);
           await query(statement);
           executedStatements++;
+          console.log(`Statement ${i + 1} executed successfully`);
         } catch (error) {
-          // Ignore errors for statements that might already exist
-          if (!error.message.includes('already exists') && 
-              !error.message.includes('Duplicate entry') &&
-              !error.message.includes('Table') && 
-              !error.message.includes('already exists')) {
-            errors.push(error.message);
-            console.warn('Schema execution warning:', error.message);
+          console.error(`Error executing statement ${i + 1}:`, error.message);
+          console.error(`Statement: ${statement}`);
+          
+          // Check if it's a "table already exists" error (which is OK)
+          if (error.message.includes('already exists') || 
+              error.message.includes('Duplicate entry') ||
+              error.message.includes('Table') && error.message.includes('already exists')) {
+            warnings.push(`Statement ${i + 1}: ${error.message}`);
+            console.log(`Statement ${i + 1} skipped (already exists)`);
+          } else {
+            errors.push(`Statement ${i + 1}: ${error.message}`);
+            console.error(`Statement ${i + 1} failed:`, error.message);
           }
         }
       }
+      
+      console.log(`Schema execution completed: ${executedStatements} statements executed, ${errors.length} errors, ${warnings.length} warnings`);
+      
+      // Verify tables were created
+      const tableCheck = await verifyTables();
+      console.log('Table verification result:', tableCheck);
       
       // Initialize current week budget
       await initializeCurrentWeek();
@@ -74,7 +94,10 @@ module.exports = async (req, res) => {
         success: true,
         message: `Database setup completed. ${executedStatements} statements executed.`,
         statements_executed: executedStatements,
-        warnings: errors.length > 0 ? errors : undefined
+        total_statements: statements.length,
+        table_verification: tableCheck,
+        errors: errors.length > 0 ? errors : undefined,
+        warnings: warnings.length > 0 ? warnings : undefined
       });
     } else {
       res.status(405).json({
@@ -134,5 +157,28 @@ async function initializeCurrentWeek() {
       `;
       await query(insertSql, [currentWeek, allocation.categoryId, allocation.amount]);
     }
+  }
+}
+
+async function verifyTables() {
+  try {
+    const tables = ['budget_categories', 'weekly_budgets', 'expenses', 'budget_adjustments', 'savings_goals', 'weekly_summaries'];
+    const results = {};
+    
+    for (const table of tables) {
+      try {
+        const result = await query(`SHOW TABLES LIKE '${table}'`);
+        results[table] = result.length > 0;
+        console.log(`Table ${table}: ${result.length > 0 ? 'EXISTS' : 'NOT FOUND'}`);
+      } catch (error) {
+        results[table] = false;
+        console.error(`Error checking table ${table}:`, error.message);
+      }
+    }
+    
+    return results;
+  } catch (error) {
+    console.error('Error verifying tables:', error.message);
+    return { error: error.message };
   }
 }
