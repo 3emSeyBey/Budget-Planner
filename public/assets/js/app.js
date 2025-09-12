@@ -163,7 +163,7 @@ class BudgetPlanner {
         const currentDate = new Date(firstWednesday);
         
         for (let i = 0; i < 104; i++) { // 2 years of Wednesdays
-            const dateStr = currentDate.toISOString().split('T')[0];
+            const dateStr = this.formatDateForAPI(currentDate);
             const displayStr = this.formatDateForDisplay(currentDate);
             
             wednesdayDates.push({
@@ -182,6 +182,14 @@ class BudgetPlanner {
             option.textContent = date.text;
             selector.appendChild(option);
         });
+    }
+
+    formatDateForAPI(date) {
+        // Format date as YYYY-MM-DD without timezone conversion
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
     }
 
     formatDateForDisplay(date) {
