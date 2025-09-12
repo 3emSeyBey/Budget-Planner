@@ -132,18 +132,12 @@ class BudgetPlanner {
         const weekSelector = document.getElementById('budget-week-selector');
         if (!weekSelector) return;
 
-        // Change input type to week
-        weekSelector.type = 'week';
+        // Generate Wednesday dates from September 2025 onwards
+        this.populateWednesdayDates(weekSelector);
         
-        // Get current week and set as default
+        // Set current week as default
         const currentWeek = this.getCurrentWeek();
-        const currentDate = new Date(currentWeek);
-        const year = currentDate.getFullYear();
-        const weekNumber = this.getWeekNumber(currentDate);
-        
-        // Format as YYYY-W## for week input
-        const weekValue = `${year}-W${weekNumber.toString().padStart(2, '0')}`;
-        weekSelector.value = weekValue;
+        weekSelector.value = currentWeek;
         
         // Add event listener for week changes
         weekSelector.addEventListener('change', (e) => {
@@ -151,43 +145,64 @@ class BudgetPlanner {
         });
     }
 
-    getWeekNumber(date) {
-        // Get the week number of the year for a given date
-        const startOfYear = new Date(date.getFullYear(), 0, 1);
-        const days = Math.floor((date - startOfYear) / (24 * 60 * 60 * 1000));
-        return Math.ceil((days + startOfYear.getDay() + 1) / 7);
+    populateWednesdayDates(selector) {
+        // Clear existing options
+        selector.innerHTML = '';
+        
+        // Start from September 1, 2025
+        const startDate = new Date(2025, 8, 1); // September 1, 2025 (month is 0-indexed)
+        
+        // Find the first Wednesday of September 2025
+        let firstWednesday = new Date(startDate);
+        while (firstWednesday.getDay() !== 3) { // 3 = Wednesday
+            firstWednesday.setDate(firstWednesday.getDate() + 1);
+        }
+        
+        // Generate Wednesday dates for 2 years (104 weeks)
+        const wednesdayDates = [];
+        const currentDate = new Date(firstWednesday);
+        
+        for (let i = 0; i < 104; i++) { // 2 years of Wednesdays
+            const dateStr = currentDate.toISOString().split('T')[0];
+            const displayStr = this.formatDateForDisplay(currentDate);
+            
+            wednesdayDates.push({
+                value: dateStr,
+                text: displayStr
+            });
+            
+            // Move to next Wednesday
+            currentDate.setDate(currentDate.getDate() + 7);
+        }
+        
+        // Add options to selector
+        wednesdayDates.forEach(date => {
+            const option = document.createElement('option');
+            option.value = date.value;
+            option.textContent = date.text;
+            selector.appendChild(option);
+        });
     }
 
-    handleWeekSelection(weekValue) {
-        if (!weekValue) return;
+    formatDateForDisplay(date) {
+        const months = [
+            'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+            'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
+        ];
         
-        // Parse the week value (YYYY-W##)
-        const [year, weekStr] = weekValue.split('-W');
-        const weekNumber = parseInt(weekStr);
+        const month = months[date.getMonth()];
+        const day = date.getDate();
+        const year = date.getFullYear();
         
-        // Calculate the Wednesday of that week
-        const wednesday = this.getWednesdayOfWeek(year, weekNumber);
+        return `${month} ${day}, ${year} (Wed)`;
+    }
+
+    handleWeekSelection(dateValue) {
+        if (!dateValue) return;
         
         // Update the current week and load budget
-        this.currentWeek = wednesday.toISOString().split('T')[0];
+        this.currentWeek = dateValue;
         this.loadBudget();
-    }
-
-    getWednesdayOfWeek(year, weekNumber) {
-        // Get the first day of the year
-        const jan1 = new Date(year, 0, 1);
-        
-        // Calculate the first Monday of the year
-        const firstMonday = new Date(jan1);
-        const dayOfWeek = jan1.getDay();
-        const daysToMonday = dayOfWeek === 0 ? 1 : 8 - dayOfWeek;
-        firstMonday.setDate(jan1.getDate() + daysToMonday);
-        
-        // Calculate the Wednesday of the specified week
-        const wednesday = new Date(firstMonday);
-        wednesday.setDate(firstMonday.getDate() + (weekNumber - 1) * 7 + 2); // +2 for Wednesday
-        
-        return wednesday;
     }
 
     showSection(sectionName) {
@@ -510,11 +525,7 @@ class BudgetPlanner {
         // Check if we have a week selector value
         const weekSelector = document.getElementById('budget-week-selector');
         if (weekSelector && weekSelector.value) {
-            // Convert week value to Wednesday date
-            const [year, weekStr] = weekSelector.value.split('-W');
-            const weekNumber = parseInt(weekStr);
-            const wednesday = this.getWednesdayOfWeek(year, weekNumber);
-            weekDate = wednesday.toISOString().split('T')[0];
+            weekDate = weekSelector.value;
         }
         
         try {

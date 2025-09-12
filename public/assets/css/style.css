@@ -196,22 +196,9 @@ body {
     padding: 0.5rem 0.75rem;
 }
 
-/* Week input styling */
-input[type="week"] {
-    min-width: 150px;
-}
-
-input[type="week"]::-webkit-calendar-picker-indicator {
-    background: transparent;
-    bottom: 0;
-    color: transparent;
-    cursor: pointer;
-    height: auto;
-    left: 0;
-    position: absolute;
-    right: 0;
-    top: 0;
-    width: auto;
+/* Week selector styling */
+#budget-week-selector {
+    min-width: 200px;
 }
 
 .form-control:focus, .form-select:focus {

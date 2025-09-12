@@ -214,12 +214,14 @@
                             <div class="card-body">
                                 <h5 class="card-title">Select Week</h5>
                                 <div class="d-flex gap-2">
-                                    <input type="week" class="form-control" id="budget-week-selector" title="Select week number (always Wednesday)">
+                                    <select class="form-select" id="budget-week-selector" title="Select Wednesday date">
+                                        <option value="">Loading dates...</option>
+                                    </select>
                                     <button class="btn btn-outline-primary" id="load-budget-btn">
                                         <i class="fas fa-search"></i>
                                     </button>
                                 </div>
-                                <small class="text-muted">Select any week number - budget will be set for Wednesday of that week</small>
+                                <small class="text-muted">Select a Wednesday date from September 2025 onwards</small>
                             </div>
                         </div>
                     </div>
