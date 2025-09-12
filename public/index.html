@@ -22,27 +22,27 @@
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav ms-auto">
                     <li class="nav-item">
-                        <a class="nav-link active" href="#dashboard" data-section="dashboard">
+                        <a class="nav-link active" href="#dashboard" data-section="dashboard" onclick="console.log('Dashboard clicked')">
                             <i class="fas fa-tachometer-alt me-1"></i>Dashboard
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="#budget" data-section="budget">
+                        <a class="nav-link" href="#budget" data-section="budget" onclick="console.log('Budget clicked')">
                             <i class="fas fa-chart-pie me-1"></i>Budget
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="#expenses" data-section="expenses">
+                        <a class="nav-link" href="#expenses" data-section="expenses" onclick="console.log('Expenses clicked')">
                             <i class="fas fa-receipt me-1"></i>Expenses
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="#analytics" data-section="analytics">
+                        <a class="nav-link" href="#analytics" data-section="analytics" onclick="console.log('Analytics clicked')">
                             <i class="fas fa-chart-line me-1"></i>Analytics
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="#smart" data-section="smart">
+                        <a class="nav-link" href="#smart" data-section="smart" onclick="console.log('Smart clicked')">
                             <i class="fas fa-brain me-1"></i>Smart Features
                         </a>
                     </li>
@@ -214,11 +214,12 @@
                             <div class="card-body">
                                 <h5 class="card-title">Select Week</h5>
                                 <div class="d-flex gap-2">
-                                    <input type="date" class="form-control" id="budget-week-selector">
+                                    <input type="week" class="form-control" id="budget-week-selector" title="Select week number (always Wednesday)">
                                     <button class="btn btn-outline-primary" id="load-budget-btn">
                                         <i class="fas fa-search"></i>
                                     </button>
                                 </div>
+                                <small class="text-muted">Select any week number - budget will be set for Wednesday of that week</small>
                             </div>
                         </div>
                     </div>
@@ -659,13 +660,32 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
     <script src="assets/js/app.js"></script>
     <script>
-        // Wait for Chart.js to be loaded before initializing the application
+        // Global variable to store the budget planner instance
+        let budgetPlanner;
+        
+        // Wait for DOM and Chart.js to be loaded before initializing the application
         function initializeApp() {
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', initializeApp);
+                return;
+            }
+            
             if (typeof Chart !== 'undefined') {
-                const budgetPlanner = new BudgetPlanner();
+                budgetPlanner = new BudgetPlanner();
+                console.log('Budget planner initialized');
             } else {
                 // Retry after a short delay if Chart.js is not yet loaded
                 setTimeout(initializeApp, 100);
+            }
+        }
+        
+        // Global function to test navigation
+        function testNavigation(section) {
+            console.log('Testing navigation to:', section);
+            if (budgetPlanner) {
+                budgetPlanner.showSection(section);
+            } else {
+                console.error('Budget planner not initialized');
             }
         }
         

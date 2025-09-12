@@ -196,6 +196,24 @@ body {
     padding: 0.5rem 0.75rem;
 }
 
+/* Week input styling */
+input[type="week"] {
+    min-width: 150px;
+}
+
+input[type="week"]::-webkit-calendar-picker-indicator {
+    background: transparent;
+    bottom: 0;
+    color: transparent;
+    cursor: pointer;
+    height: auto;
+    left: 0;
+    position: absolute;
+    right: 0;
+    top: 0;
+    width: auto;
+}
+
 .form-control:focus, .form-select:focus {
     border-color: var(--primary-color);
     box-shadow: 0 0 0 0.2rem rgba(0,123,255,0.25);
@@ -235,6 +253,21 @@ body {
     position: relative;
     height: 300px;
     margin: 1rem 0;
+}
+
+/* Chart canvas sizing */
+canvas {
+    max-height: 300px !important;
+    width: 100% !important;
+    height: auto !important;
+}
+
+/* Analytics chart containers */
+#trends-chart,
+#categories-chart,
+#forecast-chart {
+    max-height: 300px;
+    width: 100%;
 }
 
 /* Loading States */

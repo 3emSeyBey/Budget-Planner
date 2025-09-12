@@ -23,9 +23,14 @@ class BudgetPlanner {
 
     setupEventListeners() {
         // Navigation
-        document.querySelectorAll('[data-section]').forEach(link => {
+        const navLinks = document.querySelectorAll('[data-section]');
+        console.log('Found navigation links:', navLinks.length);
+        
+        navLinks.forEach(link => {
+            console.log('Setting up listener for:', link.dataset.section);
             link.addEventListener('click', (e) => {
                 e.preventDefault();
+                console.log('Navigation clicked:', link.dataset.section);
                 this.showSection(link.dataset.section);
             });
         });
@@ -103,6 +108,9 @@ class BudgetPlanner {
         document.getElementById('budget-week-selector').value = currentWeek;
         document.getElementById('expense-date').value = today.toISOString().split('T')[0];
         document.getElementById('expense-date-filter').value = currentWeek;
+        
+        // Setup week selector with week numbers
+        this.setupWeekSelector();
     }
 
     getCurrentWeek() {
@@ -120,18 +128,92 @@ class BudgetPlanner {
         }
     }
 
+    setupWeekSelector() {
+        const weekSelector = document.getElementById('budget-week-selector');
+        if (!weekSelector) return;
+
+        // Change input type to week
+        weekSelector.type = 'week';
+        
+        // Get current week and set as default
+        const currentWeek = this.getCurrentWeek();
+        const currentDate = new Date(currentWeek);
+        const year = currentDate.getFullYear();
+        const weekNumber = this.getWeekNumber(currentDate);
+        
+        // Format as YYYY-W## for week input
+        const weekValue = `${year}-W${weekNumber.toString().padStart(2, '0')}`;
+        weekSelector.value = weekValue;
+        
+        // Add event listener for week changes
+        weekSelector.addEventListener('change', (e) => {
+            this.handleWeekSelection(e.target.value);
+        });
+    }
+
+    getWeekNumber(date) {
+        // Get the week number of the year for a given date
+        const startOfYear = new Date(date.getFullYear(), 0, 1);
+        const days = Math.floor((date - startOfYear) / (24 * 60 * 60 * 1000));
+        return Math.ceil((days + startOfYear.getDay() + 1) / 7);
+    }
+
+    handleWeekSelection(weekValue) {
+        if (!weekValue) return;
+        
+        // Parse the week value (YYYY-W##)
+        const [year, weekStr] = weekValue.split('-W');
+        const weekNumber = parseInt(weekStr);
+        
+        // Calculate the Wednesday of that week
+        const wednesday = this.getWednesdayOfWeek(year, weekNumber);
+        
+        // Update the current week and load budget
+        this.currentWeek = wednesday.toISOString().split('T')[0];
+        this.loadBudget();
+    }
+
+    getWednesdayOfWeek(year, weekNumber) {
+        // Get the first day of the year
+        const jan1 = new Date(year, 0, 1);
+        
+        // Calculate the first Monday of the year
+        const firstMonday = new Date(jan1);
+        const dayOfWeek = jan1.getDay();
+        const daysToMonday = dayOfWeek === 0 ? 1 : 8 - dayOfWeek;
+        firstMonday.setDate(jan1.getDate() + daysToMonday);
+        
+        // Calculate the Wednesday of the specified week
+        const wednesday = new Date(firstMonday);
+        wednesday.setDate(firstMonday.getDate() + (weekNumber - 1) * 7 + 2); // +2 for Wednesday
+        
+        return wednesday;
+    }
+
     showSection(sectionName) {
+        console.log('Switching to section:', sectionName);
+        
         // Update navigation
         document.querySelectorAll('.nav-link').forEach(link => {
             link.classList.remove('active');
         });
-        document.querySelector(`[data-section="${sectionName}"]`).classList.add('active');
+        const activeLink = document.querySelector(`[data-section="${sectionName}"]`);
+        if (activeLink) {
+            activeLink.classList.add('active');
+        } else {
+            console.error('Navigation link not found for section:', sectionName);
+        }
 
         // Show section
         document.querySelectorAll('.content-section').forEach(section => {
             section.classList.remove('active');
         });
-        document.getElementById(sectionName).classList.add('active');
+        const targetSection = document.getElementById(sectionName);
+        if (targetSection) {
+            targetSection.classList.add('active');
+        } else {
+            console.error('Section not found:', sectionName);
+        }
 
         // Load section-specific data
         switch (sectionName) {
@@ -423,7 +505,17 @@ class BudgetPlanner {
     }
 
     async loadBudget() {
-        const weekDate = document.getElementById('budget-week-selector').value || this.currentWeek;
+        let weekDate = this.currentWeek;
+        
+        // Check if we have a week selector value
+        const weekSelector = document.getElementById('budget-week-selector');
+        if (weekSelector && weekSelector.value) {
+            // Convert week value to Wednesday date
+            const [year, weekStr] = weekSelector.value.split('-W');
+            const weekNumber = parseInt(weekStr);
+            const wednesday = this.getWednesdayOfWeek(year, weekNumber);
+            weekDate = wednesday.toISOString().split('T')[0];
+        }
         
         try {
             const budget = await this.apiCall(`budget?type=week&date=${weekDate}`);
@@ -661,19 +753,38 @@ class BudgetPlanner {
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
+                aspectRatio: 2,
                 plugins: {
                     legend: {
                         display: false
                     }
                 },
                 scales: {
+                    x: {
+                        display: true,
+                        grid: {
+                            display: false
+                        }
+                    },
                     y: {
                         beginAtZero: true,
+                        display: true,
+                        grid: {
+                            display: true
+                        },
                         ticks: {
                             callback: function(value) {
                                 return '₱' + value.toLocaleString();
                             }
                         }
+                    }
+                },
+                layout: {
+                    padding: {
+                        top: 10,
+                        bottom: 10,
+                        left: 10,
+                        right: 10
                     }
                 }
             }
@@ -711,19 +822,38 @@ class BudgetPlanner {
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
+                aspectRatio: 2,
                 plugins: {
                     legend: {
                         display: false
                     }
                 },
                 scales: {
+                    x: {
+                        display: true,
+                        grid: {
+                            display: false
+                        }
+                    },
                     y: {
                         beginAtZero: true,
+                        display: true,
+                        grid: {
+                            display: true
+                        },
                         ticks: {
                             callback: function(value) {
                                 return '₱' + value.toLocaleString();
                             }
                         }
+                    }
+                },
+                layout: {
+                    padding: {
+                        top: 10,
+                        bottom: 10,
+                        left: 10,
+                        right: 10
                     }
                 }
             }
@@ -760,9 +890,22 @@ class BudgetPlanner {
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
+                aspectRatio: 1,
                 plugins: {
                     legend: {
-                        position: 'bottom'
+                        position: 'bottom',
+                        labels: {
+                            padding: 20,
+                            usePointStyle: true
+                        }
+                    }
+                },
+                layout: {
+                    padding: {
+                        top: 10,
+                        bottom: 10,
+                        left: 10,
+                        right: 10
                     }
                 }
             }
