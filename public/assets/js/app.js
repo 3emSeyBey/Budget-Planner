@@ -386,6 +386,9 @@ class BudgetPlanner {
             console.error('Section not found:', sectionName);
         }
 
+        // Close mobile menu if open
+        this.closeMobileMenu();
+
         // Load section-specific data
         switch (sectionName) {
             case 'dashboard':
@@ -403,6 +406,27 @@ class BudgetPlanner {
             case 'smart':
                 this.loadSmartFeatures();
                 break;
+        }
+    }
+
+    closeMobileMenu() {
+        // Close mobile menu by removing show class from navbar collapse
+        const navbarCollapse = document.querySelector('.navbar-collapse');
+        if (navbarCollapse && navbarCollapse.classList.contains('show')) {
+            navbarCollapse.classList.remove('show');
+        }
+        
+        // Also close by removing show class from navbar
+        const navbar = document.querySelector('.navbar-collapse');
+        if (navbar) {
+            navbar.classList.remove('show');
+        }
+        
+        // Reset the hamburger button state
+        const navbarToggler = document.querySelector('.navbar-toggler');
+        if (navbarToggler) {
+            navbarToggler.setAttribute('aria-expanded', 'false');
+            navbarToggler.classList.add('collapsed');
         }
     }
 

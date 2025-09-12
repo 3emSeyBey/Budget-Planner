@@ -882,38 +882,42 @@ canvas {
 /* Spend option styling */
 .action-plan-select option[value="spend"] {
     background-color: #d4edda;
-    color: #155724;
-    font-weight: 600;
+    color: #0d4a1a;
+    font-weight: 700;
 }
 
 .action-plan-select option[value="spend"]:checked {
     background-color: #28a745;
     color: white;
+    font-weight: 700;
 }
 
 /* Save option styling */
 .action-plan-select option[value="save"] {
     background-color: #fff3cd;
-    color: #856404;
-    font-weight: 600;
+    color: #6c4a00;
+    font-weight: 700;
 }
 
 .action-plan-select option[value="save"]:checked {
     background-color: #ffc107;
-    color: #212529;
+    color: #000000;
+    font-weight: 700;
 }
 
 /* Dynamic styling based on selected value */
 .action-plan-select[data-selected="spend"] {
     background-color: #d4edda;
     border-color: #28a745;
-    color: #155724;
+    color: #0d4a1a;
+    font-weight: 700;
 }
 
 .action-plan-select[data-selected="save"] {
     background-color: #fff3cd;
     border-color: #ffc107;
-    color: #856404;
+    color: #6c4a00;
+    font-weight: 700;
 }
 
 /* Print Styles */
