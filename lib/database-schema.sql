@@ -72,6 +72,7 @@ CREATE TABLE IF NOT EXISTS weekly_summaries (
     id INT PRIMARY KEY AUTO_INCREMENT,
     week_date DATE NOT NULL UNIQUE,
     total_planned DECIMAL(10,2) NOT NULL DEFAULT 12000,
+    weekly_budget_limit DECIMAL(10,2) DEFAULT 12000,
     total_spent DECIMAL(10,2) DEFAULT 0,
     total_saved DECIMAL(10,2) DEFAULT 0,
     remaining_budget DECIMAL(10,2) DEFAULT 0,

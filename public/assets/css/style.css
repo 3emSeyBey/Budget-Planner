@@ -1,28 +1,53 @@
 /* Smart Budget Planner - Custom Styles */
 
 :root {
-    --primary-color: #007bff;
-    --secondary-color: #6c757d;
-    --success-color: #28a745;
-    --danger-color: #dc3545;
-    --warning-color: #ffc107;
-    --info-color: #17a2b8;
-    --light-color: #f8f9fa;
-    --dark-color: #343a40;
+    --primary-color: #6366f1;
+    --secondary-color: #64748b;
+    --success-color: #10b981;
+    --danger-color: #ef4444;
+    --warning-color: #f59e0b;
+    --info-color: #06b6d4;
+    --light-color: #1e293b;
+    --dark-color: #0f172a;
     --border-radius: 8px;
-    --box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    --box-shadow: 0 2px 10px rgba(0,0,0,0.3);
     --transition: all 0.3s ease;
+    
+    /* Dark theme colors */
+    --bg-primary: #0f172a;
+    --bg-secondary: #1e293b;
+    --bg-tertiary: #334155;
+    --text-primary: #f1f5f9;
+    --text-secondary: #cbd5e1;
+    --text-muted: #94a3b8;
+    --border-color: #475569;
+    --shadow-color: rgba(0, 0, 0, 0.3);
 }
 
 /* Global Styles */
 body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background-color: #f5f7fa;
+    background-color: var(--bg-primary);
+    color: var(--text-primary);
     padding-top: 76px;
+    overflow-x: hidden;
+}
+
+/* Particle background */
+#particles-js {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: -1;
+    background: linear-gradient(135deg, var(--bg-primary) 0%, #1e1b4b 50%, var(--bg-primary) 100%);
 }
 
 .main-content {
     min-height: calc(100vh - 76px);
+    position: relative;
+    z-index: 1;
 }
 
 .content-section {
@@ -56,22 +81,32 @@ body {
 
 /* Cards */
 .card {
-    border: none;
+    border: 1px solid var(--border-color);
     border-radius: var(--border-radius);
-    box-shadow: var(--box-shadow);
+    box-shadow: 0 4px 20px var(--shadow-color);
     transition: var(--transition);
     margin-bottom: 1.5rem;
+    background-color: var(--bg-secondary);
+    backdrop-filter: blur(10px);
 }
 
 .card:hover {
     transform: translateY(-2px);
-    box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+    box-shadow: 0 8px 30px var(--shadow-color);
+    border-color: var(--primary-color);
 }
 
 .card-header {
-    background-color: #fff;
-    border-bottom: 1px solid #e9ecef;
+    background-color: var(--bg-tertiary);
+    border-bottom: 1px solid var(--border-color);
+    color: var(--text-primary);
     border-radius: var(--border-radius) var(--border-radius) 0 0 !important;
+}
+
+.card-body {
+    background-color: var(--bg-secondary);
+    color: var(--text-primary);
+}
     font-weight: 600;
 }
 
@@ -108,24 +143,32 @@ body {
 .table {
     border-radius: var(--border-radius);
     overflow: hidden;
+    background-color: var(--bg-secondary);
+    color: var(--text-primary);
 }
 
 .table thead th {
-    background-color: #f8f9fa;
-    border-bottom: 2px solid #dee2e6;
+    background-color: var(--bg-tertiary);
+    border-bottom: 2px solid var(--border-color);
     font-weight: 600;
-    color: var(--dark-color);
+    color: var(--text-primary);
     padding: 1rem 0.75rem;
 }
 
 .table tbody td {
     padding: 0.875rem 0.75rem;
     vertical-align: middle;
-    border-bottom: 1px solid #e9ecef;
+    border-bottom: 1px solid var(--border-color);
+    color: var(--text-primary);
 }
 
 .table tbody tr:hover {
-    background-color: #f8f9fa;
+    background-color: var(--bg-tertiary);
+}
+
+.table-info {
+    background-color: rgba(99, 102, 241, 0.1) !important;
+    color: var(--text-primary) !important;
 }
 
 /* Status Badges */
@@ -191,14 +234,132 @@ body {
 /* Forms */
 .form-control, .form-select {
     border-radius: var(--border-radius);
-    border: 1px solid #ced4da;
+    border: 1px solid var(--border-color);
+    background-color: var(--bg-tertiary);
+    color: var(--text-primary);
     transition: var(--transition);
     padding: 0.5rem 0.75rem;
+}
+
+.form-control:focus, .form-select:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 0.2rem rgba(99, 102, 241, 0.25);
+    background-color: var(--bg-tertiary);
+    color: var(--text-primary);
+}
+
+.form-control::placeholder {
+    color: var(--text-muted);
+}
+
+.form-label {
+    color: var(--text-primary);
+    font-weight: 500;
 }
 
 /* Week selector styling */
 #budget-week-selector {
     min-width: 200px;
+}
+
+/* Week status badges */
+.badge.bg-success {
+    background-color: #28a745 !important;
+}
+
+.badge.bg-secondary {
+    background-color: #6c757d !important;
+}
+
+.badge.bg-primary {
+    background-color: #007bff !important;
+}
+
+/* Current week indicator */
+#current-week-display {
+    font-size: 0.875rem;
+}
+
+#current-week-badge {
+    font-size: 0.75rem;
+}
+
+/* Modals */
+.modal-content {
+    background-color: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    color: var(--text-primary);
+}
+
+.modal-header {
+    background-color: var(--bg-tertiary);
+    border-bottom: 1px solid var(--border-color);
+}
+
+.modal-footer {
+    background-color: var(--bg-tertiary);
+    border-top: 1px solid var(--border-color);
+}
+
+/* Alerts */
+.alert {
+    background-color: var(--bg-tertiary);
+    border: 1px solid var(--border-color);
+    color: var(--text-primary);
+}
+
+.alert-success {
+    background-color: rgba(16, 185, 129, 0.1);
+    border-color: var(--success-color);
+    color: var(--success-color);
+}
+
+.alert-danger {
+    background-color: rgba(239, 68, 68, 0.1);
+    border-color: var(--danger-color);
+    color: var(--danger-color);
+}
+
+.alert-warning {
+    background-color: rgba(245, 158, 11, 0.1);
+    border-color: var(--warning-color);
+    color: var(--warning-color);
+}
+
+.alert-info {
+    background-color: rgba(6, 182, 212, 0.1);
+    border-color: var(--info-color);
+    color: var(--info-color);
+}
+
+/* Text colors */
+.text-muted {
+    color: var(--text-muted) !important;
+}
+
+.text-primary {
+    color: var(--primary-color) !important;
+}
+
+.text-success {
+    color: var(--success-color) !important;
+}
+
+.text-danger {
+    color: var(--danger-color) !important;
+}
+
+.text-warning {
+    color: var(--warning-color) !important;
+}
+
+/* Background colors */
+.bg-light {
+    background-color: var(--bg-secondary) !important;
+}
+
+.bg-dark {
+    background-color: var(--bg-primary) !important;
 }
 
 .form-control:focus, .form-select:focus {

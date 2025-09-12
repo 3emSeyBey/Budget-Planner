@@ -16,6 +16,7 @@ class BudgetPlanner {
 
     init() {
         this.setupEventListeners();
+        this.setupCurrentWeekTracking();
         this.loadCategories();
         this.loadDashboard();
         this.setupDateInputs();
@@ -213,6 +214,97 @@ class BudgetPlanner {
         this.loadBudget();
     }
 
+    setupCurrentWeekTracking() {
+        // Check for current week every minute
+        setInterval(() => {
+            this.checkCurrentWeek();
+        }, 60000); // Check every minute
+        
+        // Also check on page focus
+        document.addEventListener('visibilitychange', () => {
+            if (!document.hidden) {
+                this.checkCurrentWeek();
+            }
+        });
+    }
+
+    checkCurrentWeek() {
+        const newCurrentWeek = this.getCurrentWeek();
+        
+        // If the week has changed, update the app
+        if (newCurrentWeek !== this.currentWeek) {
+            console.log('Week changed from', this.currentWeek, 'to', newCurrentWeek);
+            this.currentWeek = newCurrentWeek;
+            this.updateCurrentWeekUI();
+            this.refreshCurrentData();
+        }
+    }
+
+    updateCurrentWeekUI() {
+        // Update the week selector to show current week
+        const weekSelector = document.getElementById('budget-week-selector');
+        if (weekSelector) {
+            weekSelector.value = this.currentWeek;
+        }
+        
+        // Update any current week indicators in the UI
+        this.updateCurrentWeekIndicators();
+    }
+
+    updateCurrentWeekIndicators() {
+        // Add visual indicators for current week
+        const currentWeekElements = document.querySelectorAll('[data-current-week]');
+        currentWeekElements.forEach(element => {
+            element.textContent = this.formatDateForDisplay(new Date(this.currentWeek));
+        });
+        
+        // Update dashboard with current week info
+        this.updateDashboardCurrentWeek();
+    }
+
+    updateDashboardCurrentWeek() {
+        // Update dashboard to show current week information
+        const currentWeekElement = document.getElementById('current-week-display');
+        if (currentWeekElement) {
+            currentWeekElement.textContent = `Current Week: ${this.formatDateForDisplay(new Date(this.currentWeek))}`;
+        }
+    }
+
+    refreshCurrentData() {
+        // Refresh data for the current week
+        console.log('Refreshing data for current week:', this.currentWeek);
+        
+        // Reload dashboard if it's currently active
+        const activeSection = document.querySelector('.content-section.active');
+        if (activeSection && activeSection.id === 'dashboard') {
+            this.loadDashboard();
+        }
+        
+        // Reload budget if it's currently active
+        if (activeSection && activeSection.id === 'budget') {
+            this.loadBudget();
+        }
+    }
+
+    isCurrentWeek(dateString) {
+        return dateString === this.currentWeek;
+    }
+
+    getWeekStatus(dateString) {
+        if (this.isCurrentWeek(dateString)) {
+            return 'current';
+        }
+        
+        const date = new Date(dateString);
+        const currentDate = new Date(this.currentWeek);
+        
+        if (date < currentDate) {
+            return 'past';
+        } else {
+            return 'future';
+        }
+    }
+
     showSection(sectionName) {
         console.log('Switching to section:', sectionName);
         
@@ -334,6 +426,7 @@ class BudgetPlanner {
 
             // Create budget chart
             this.createBudgetChart(budget);
+            this.createSpendingProgressChart(budget);
 
         } catch (error) {
             console.error('Failed to load dashboard:', error);
@@ -443,8 +536,8 @@ class BudgetPlanner {
                     label: 'Planned Amount',
                     data: plannedData,
                     backgroundColor: [
-                        '#007bff', '#28a745', '#dc3545', '#ffc107', '#17a2b8',
-                        '#6f42c1', '#20c997', '#fd7e14', '#e83e8c', '#6c757d', '#343a40'
+                        '#6366f1', '#10b981', '#ef4444', '#f59e0b', '#06b6d4',
+                        '#8b5cf6', '#14b8a6', '#f97316', '#ec4899', '#64748b', '#1e293b'
                     ],
                     borderWidth: 2,
                     borderColor: '#fff'
@@ -468,6 +561,107 @@ class BudgetPlanner {
                                 const value = context.parsed;
                                 return `${label}: ₱${value.toLocaleString()}`;
                             }
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    createSpendingProgressChart(budget) {
+        // Check if Chart.js is available
+        if (typeof Chart === 'undefined') {
+            console.warn('Chart.js is not loaded. Skipping spending progress chart creation.');
+            return;
+        }
+
+        const ctx = document.getElementById('spending-progress-chart').getContext('2d');
+        
+        if (this.charts.spendingProgress) {
+            this.charts.spendingProgress.destroy();
+        }
+
+        if (!budget || budget.length === 0) {
+            // Show empty state
+            ctx.fillStyle = '#6c757d';
+            ctx.font = '16px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText('No budget data available', ctx.canvas.width / 2, ctx.canvas.height / 2);
+            return;
+        }
+
+        const categories = budget.map(item => item.category_name);
+        const plannedAmounts = budget.map(item => parseFloat(item.planned_amount || 0));
+        const actualAmounts = budget.map(item => parseFloat(item.actual_amount || 0));
+        
+        // Calculate spending percentages
+        const spendingPercentages = plannedAmounts.map((planned, index) => {
+            if (planned === 0) return 0;
+            return Math.min((actualAmounts[index] / planned) * 100, 100);
+        });
+
+        // Color coding based on spending percentage
+        const backgroundColors = spendingPercentages.map(percentage => {
+            if (percentage >= 90) return '#ef4444'; // Red - Over budget
+            if (percentage >= 75) return '#f59e0b'; // Yellow - Warning
+            return '#10b981'; // Green - Good
+        });
+
+        this.charts.spendingProgress = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: categories,
+                datasets: [{
+                    label: 'Spending %',
+                    data: spendingPercentages,
+                    backgroundColor: backgroundColors,
+                    borderColor: backgroundColors,
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                aspectRatio: 3,
+                layout: {
+                    padding: { top: 10, bottom: 10, left: 10, right: 10 }
+                },
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                const category = context.label;
+                                const percentage = context.parsed.y.toFixed(1);
+                                const planned = plannedAmounts[context.dataIndex];
+                                const actual = actualAmounts[context.dataIndex];
+                                return `${category}: ${percentage}% (₱${actual.toLocaleString()} / ₱${planned.toLocaleString()})`;
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        max: 100,
+                        ticks: {
+                            callback: function(value) {
+                                return value + '%';
+                            }
+                        },
+                        grid: {
+                            color: 'rgba(0,0,0,0.1)'
+                        }
+                    },
+                    x: {
+                        ticks: {
+                            maxRotation: 45,
+                            minRotation: 45
+                        },
+                        grid: {
+                            display: false
                         }
                     }
                 }
@@ -538,20 +732,24 @@ class BudgetPlanner {
         
         try {
             const budget = await this.apiCall(`budget?type=week&date=${weekDate}`);
-            this.displayBudget(budget);
+            await this.displayBudget(budget);
         } catch (error) {
             console.error('Failed to load budget:', error);
         }
     }
 
-    displayBudget(budget) {
+    async displayBudget(budget) {
         const tbody = document.getElementById('budget-table-body');
         tbody.innerHTML = '';
 
         if (budget.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="7" class="text-center text-muted">No budget data found for this week</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="8" class="text-center text-muted">No budget data found for this week</td></tr>';
             return;
         }
+
+        // Get the week date from the first item
+        const weekDate = budget[0]?.week_date;
+        const weekStatus = this.getWeekStatus(weekDate);
 
         budget.forEach(item => {
             const remaining = parseFloat(item.planned_amount) - parseFloat(item.actual_amount || 0);
@@ -576,6 +774,7 @@ class BudgetPlanner {
                 <td>₱${parseFloat(item.actual_amount || 0).toLocaleString()}</td>
                 <td class="${remaining < 0 ? 'text-danger' : 'text-success'}">₱${remaining.toLocaleString()}</td>
                 <td><span class="status-badge ${statusClass}">${statusText}</span></td>
+                <td><span class="badge ${this.getWeekStatusClass(weekStatus)}">${this.getWeekStatusText(weekStatus)}</span></td>
                 <td>
                     <button class="btn btn-sm btn-outline-primary" onclick="budgetPlanner.editBudget(${item.category_id}, '${item.week_date}', '${item.category_name}', ${item.planned_amount}, '${item.notes || ''}')">
                         <i class="fas fa-edit"></i>
@@ -584,6 +783,105 @@ class BudgetPlanner {
             `;
             tbody.appendChild(row);
         });
+
+        // Add totals row
+        await this.addBudgetTotalsRow(budget, tbody);
+    }
+
+    async addBudgetTotalsRow(budget, tbody) {
+        // Calculate totals
+        const totalPlanned = budget.reduce((sum, item) => sum + parseFloat(item.planned_amount || 0), 0);
+        const totalActual = budget.reduce((sum, item) => sum + parseFloat(item.actual_amount || 0), 0);
+        const totalRemaining = totalPlanned - totalActual;
+        
+        // Get weekly budget limit (default 12000, but should be editable)
+        const weeklyBudget = await this.getWeeklyBudgetLimit();
+        const budgetUtilization = (totalPlanned / weeklyBudget) * 100;
+        
+        // Create totals row
+        const totalsRow = document.createElement('tr');
+        totalsRow.className = 'table-info fw-bold';
+        totalsRow.innerHTML = `
+            <td><strong>TOTAL</strong></td>
+            <td><strong>All Banks</strong></td>
+            <td><strong>₱${totalPlanned.toLocaleString()}</strong></td>
+            <td><strong>₱${totalActual.toLocaleString()}</strong></td>
+            <td class="${totalRemaining < 0 ? 'text-danger' : 'text-success'}"><strong>₱${totalRemaining.toLocaleString()}</strong></td>
+            <td>
+                <span class="badge ${this.getBudgetUtilizationClass(budgetUtilization)}">
+                    ${budgetUtilization.toFixed(1)}% of Weekly Budget
+                </span>
+            </td>
+            <td><span class="badge bg-info">Summary</span></td>
+            <td>
+                <button class="btn btn-sm btn-outline-secondary" onclick="budgetPlanner.editWeeklyBudget()">
+                    <i class="fas fa-cog"></i>
+                </button>
+            </td>
+        `;
+        tbody.appendChild(totalsRow);
+    }
+
+    async getWeeklyBudgetLimit() {
+        try {
+            const response = await this.apiCall('budget?type=weekly-limit');
+            return response.weekly_budget_limit || 12000;
+        } catch (error) {
+            console.error('Failed to get weekly budget limit:', error);
+            return 12000; // Default fallback
+        }
+    }
+
+    setWeeklyBudgetLimit(amount) {
+        // This is now handled by the database, but keep for compatibility
+        localStorage.setItem('weeklyBudgetLimit', amount.toString());
+    }
+
+    getBudgetUtilizationClass(percentage) {
+        if (percentage > 100) return 'bg-danger';
+        if (percentage > 90) return 'bg-warning';
+        return 'bg-success';
+    }
+
+    editWeeklyBudget() {
+        const currentLimit = this.getWeeklyBudgetLimit();
+        document.getElementById('weekly-budget-limit').value = currentLimit;
+        
+        // Show the modal
+        const modal = new bootstrap.Modal(document.getElementById('weeklyBudgetModal'));
+        modal.show();
+    }
+
+    async saveWeeklyBudget() {
+        const newLimit = parseFloat(document.getElementById('weekly-budget-limit').value);
+        
+        if (isNaN(newLimit) || newLimit <= 0) {
+            this.showAlert('error', 'Please enter a valid weekly budget amount.');
+            return;
+        }
+
+        try {
+            // Save to localStorage
+            this.setWeeklyBudgetLimit(newLimit);
+            
+            // Save to database
+            await this.apiCall('budget?type=update-weekly-limit', 'POST', {
+                weekly_budget_limit: newLimit
+            });
+
+            this.showAlert('success', 'Weekly budget limit updated successfully!');
+            
+            // Close modal
+            const modal = bootstrap.Modal.getInstance(document.getElementById('weeklyBudgetModal'));
+            modal.hide();
+            
+            // Refresh budget display
+            this.loadBudget();
+            
+        } catch (error) {
+            console.error('Failed to save weekly budget:', error);
+            this.showAlert('error', 'Failed to save weekly budget. Please try again.');
+        }
     }
 
     editBudget(categoryId, weekDate, categoryName, amount, notes) {

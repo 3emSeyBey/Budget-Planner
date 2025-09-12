@@ -31,10 +31,13 @@ module.exports = async (req, res) => {
           const weekDate = req.query.date || new Date().toISOString().split('T')[0];
           data = await budgetManager.getWeeklyBudget(weekDate);
           break;
+        case 'weekly-limit':
+          data = { weekly_budget_limit: await budgetManager.getWeeklyBudgetLimit() };
+          break;
         default:
           return res.status(400).json({
             success: false,
-            message: 'Invalid budget type. Use: current or week'
+            message: 'Invalid budget type. Use: current, week, or weekly-limit'
           });
       }
       
@@ -59,10 +62,27 @@ module.exports = async (req, res) => {
           success: true,
           message: 'Budget updated successfully'
         });
+      } else if (type === 'update-weekly-limit') {
+        const { weekly_budget_limit } = req.body;
+        
+        if (!weekly_budget_limit || weekly_budget_limit <= 0) {
+          return res.status(400).json({
+            success: false,
+            message: 'Valid weekly budget limit is required'
+          });
+        }
+
+        const result = await budgetManager.updateWeeklyBudgetLimit(weekly_budget_limit);
+        
+        res.status(200).json({
+          success: true,
+          message: 'Weekly budget limit updated successfully',
+          data: { weekly_budget_limit: result }
+        });
       } else {
         return res.status(400).json({
           success: false,
-          message: 'Invalid budget type for POST. Use: week'
+          message: 'Invalid budget type for POST. Use: week or update-weekly-limit'
         });
       }
     } else {
