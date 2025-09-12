@@ -1,8 +1,8 @@
 /**
- * Vercel serverless function for top spending categories analytics
+ * Vercel serverless function for recommendations
  */
 
-const ExpenseTracker = require('../../lib/expense-tracker');
+const SmartFeatures = require('../lib/smart-features');
 
 module.exports = async (req, res) => {
   // Set CORS headers
@@ -18,12 +18,25 @@ module.exports = async (req, res) => {
 
   try {
     if (req.method === 'GET') {
-      const expenseTracker = new ExpenseTracker();
-      const topCategories = await expenseTracker.getTopSpendingCategories(4);
+      const { type } = req.query;
+      const smartFeatures = new SmartFeatures();
+      
+      let data;
+      
+      switch (type) {
+        case 'savings':
+          data = await smartFeatures.getSavingsRecommendations();
+          break;
+        default:
+          return res.status(400).json({
+            success: false,
+            message: 'Invalid recommendation type. Use: savings'
+          });
+      }
       
       res.status(200).json({
         success: true,
-        data: topCategories
+        data: data
       });
     } else {
       res.status(405).json({
@@ -32,7 +45,7 @@ module.exports = async (req, res) => {
       });
     }
   } catch (error) {
-    console.error('Analytics Top Categories API Error:', error);
+    console.error('Recommendations API Error:', error);
     res.status(500).json({
       success: false,
       message: error.message

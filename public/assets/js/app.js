@@ -214,11 +214,11 @@ class BudgetPlanner {
     async loadDashboard() {
         try {
             // Load current week budget
-            const budget = await this.apiCall('budget/current');
+            const budget = await this.apiCall('budget?type=current');
             this.budgetData = budget;
 
             // Load current week expenses
-            const expenses = await this.apiCall('expenses/current');
+            const expenses = await this.apiCall('expenses?type=current');
             this.expenseData = expenses;
 
             // Update dashboard stats
@@ -251,7 +251,7 @@ class BudgetPlanner {
 
     async calculateBudgetHealth(totalSpent, totalPlanned) {
         try {
-            const healthData = await this.apiCall('smart/health');
+            const healthData = await this.apiCall('smart?type=health');
             const healthScore = healthData.health_score || 100;
             
             document.getElementById('health-score').textContent = `${healthScore}%`;
@@ -277,7 +277,7 @@ class BudgetPlanner {
 
     async loadAlerts() {
         try {
-            const alerts = await this.apiCall('smart/alerts');
+            const alerts = await this.apiCall('smart?type=alerts');
             this.displayAlerts(alerts);
         } catch (error) {
             console.error('Failed to load alerts:', error);
@@ -375,7 +375,7 @@ class BudgetPlanner {
         }
 
         try {
-            await this.apiCall('expenses/add', 'POST', {
+            await this.apiCall('expenses?type=add', 'POST', {
                 week_date: this.currentWeek,
                 category_id: categoryId,
                 amount: amount,
@@ -407,7 +407,7 @@ class BudgetPlanner {
         }
 
         try {
-            await this.apiCall('expenses/add', 'POST', formData);
+            await this.apiCall('expenses?type=add', 'POST', formData);
             this.showAlert('success', 'Expense added successfully!');
             document.getElementById('expense-form').reset();
             this.loadExpenses();
@@ -420,7 +420,7 @@ class BudgetPlanner {
         const weekDate = document.getElementById('budget-week-selector').value || this.currentWeek;
         
         try {
-            const budget = await this.apiCall(`budget/week?date=${weekDate}`);
+            const budget = await this.apiCall(`budget?type=week&date=${weekDate}`);
             this.displayBudget(budget);
         } catch (error) {
             console.error('Failed to load budget:', error);
@@ -487,7 +487,7 @@ class BudgetPlanner {
         const notes = document.getElementById('edit-notes').value;
 
         try {
-            await this.apiCall('budget/week', 'POST', {
+            await this.apiCall('budget?type=week', 'POST', {
                 week_date: weekDate,
                 category_id: categoryId,
                 amount: amount,
@@ -506,7 +506,7 @@ class BudgetPlanner {
         const weekDate = document.getElementById('expense-date-filter').value || this.currentWeek;
         
         try {
-            const expenses = await this.apiCall(`expenses/week?date=${weekDate}`);
+            const expenses = await this.apiCall(`expenses?type=week&date=${weekDate}`);
             this.displayExpenses(expenses);
         } catch (error) {
             console.error('Failed to load expenses:', error);
@@ -566,7 +566,7 @@ class BudgetPlanner {
         const location = document.getElementById('edit-expense-location').value;
 
         try {
-            await this.apiCall('expenses/update', 'PUT', {
+            await this.apiCall('expenses?type=update', 'PUT', {
                 expense_id: expenseId,
                 amount: amount,
                 description: description,
@@ -588,7 +588,7 @@ class BudgetPlanner {
         }
 
         try {
-            await this.apiCall(`expenses/delete?id=${expenseId}`, 'DELETE');
+            await this.apiCall(`expenses?type=delete&id=${expenseId}`, 'DELETE');
             this.showAlert('success', 'Expense deleted successfully!');
             this.loadExpenses();
         } catch (error) {
@@ -599,22 +599,22 @@ class BudgetPlanner {
     async loadAnalytics() {
         try {
             // Load spending trends
-            const trends = await this.apiCall('analytics/trends');
+            const trends = await this.apiCall('analytics?type=trends');
             this.createTrendsChart(trends);
 
             // Load top categories
-            const topCategories = await this.apiCall('analytics/top-categories');
+            const topCategories = await this.apiCall('analytics?type=top-categories');
             this.createCategoriesChart(topCategories);
 
             // Load monthly forecast
-            const forecast = await this.apiCall('analytics/forecast');
+            const forecast = await this.apiCall('analytics?type=forecast');
             this.createForecastChart(forecast);
 
             // Load category breakdown
             this.displayCategoryBreakdown(topCategories);
 
             // Load savings recommendations
-            const recommendations = await this.apiCall('recommendations/savings');
+            const recommendations = await this.apiCall('recommendations?type=savings');
             this.displaySavingsRecommendations(recommendations);
 
         } catch (error) {
@@ -787,7 +787,7 @@ class BudgetPlanner {
 
     async getSmartReallocations() {
         try {
-            const reallocations = await this.apiCall('smart/reallocate');
+            const reallocations = await this.apiCall('smart?type=reallocate');
             this.displayReallocations(reallocations);
         } catch (error) {
             console.error('Failed to get reallocations:', error);
@@ -819,7 +819,7 @@ class BudgetPlanner {
 
     async getPredictions() {
         try {
-            const predictions = await this.apiCall('smart/predict');
+            const predictions = await this.apiCall('smart?type=predict');
             this.displayPredictions(predictions);
         } catch (error) {
             console.error('Failed to get predictions:', error);
@@ -844,7 +844,7 @@ class BudgetPlanner {
 
     async autoAdjustNextWeek() {
         try {
-            const result = await this.apiCall('smart/adjust', 'POST', {
+            const result = await this.apiCall('smart?type=adjust', 'POST', {
                 week_date: this.currentWeek
             });
             

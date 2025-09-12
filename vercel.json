@@ -12,92 +12,32 @@
   ],
   "routes": [
     {
-      "src": "/api/health",
-      "dest": "/api/health.js"
-    },
-    {
-      "src": "/api/test-db",
-      "dest": "/api/test-db.js"
-    },
-    {
       "src": "/api/setup",
       "dest": "/api/setup.js"
-    },
-    {
-      "src": "/api/debug-db",
-      "dest": "/api/debug-db.js"
-    },
-    {
-      "src": "/api/test-sql",
-      "dest": "/api/test-sql.js"
     },
     {
       "src": "/api/categories",
       "dest": "/api/categories.js"
     },
     {
-      "src": "/api/budget/current",
-      "dest": "/api/budget/current.js"
+      "src": "/api/budget",
+      "dest": "/api/budget.js"
     },
     {
-      "src": "/api/budget/week",
-      "dest": "/api/budget/week.js"
+      "src": "/api/expenses",
+      "dest": "/api/expenses.js"
     },
     {
-      "src": "/api/expenses/add",
-      "dest": "/api/expenses/add.js"
+      "src": "/api/smart",
+      "dest": "/api/smart.js"
     },
     {
-      "src": "/api/expenses/current",
-      "dest": "/api/expenses/current.js"
+      "src": "/api/analytics",
+      "dest": "/api/analytics.js"
     },
     {
-      "src": "/api/smart/alerts",
-      "dest": "/api/smart/alerts.js"
-    },
-    {
-      "src": "/api/smart/health",
-      "dest": "/api/smart/health.js"
-    },
-    {
-      "src": "/api/smart/predict",
-      "dest": "/api/smart/predict.js"
-    },
-    {
-      "src": "/api/smart/reallocate",
-      "dest": "/api/smart/reallocate.js"
-    },
-    {
-      "src": "/api/smart/adjust",
-      "dest": "/api/smart/adjust.js"
-    },
-    {
-      "src": "/api/expenses/week",
-      "dest": "/api/expenses/week.js"
-    },
-    {
-      "src": "/api/expenses/update",
-      "dest": "/api/expenses/update.js"
-    },
-    {
-      "src": "/api/expenses/delete",
-      "dest": "/api/expenses/delete.js"
-    },
-    {
-      "src": "/api/analytics/trends",
-      "dest": "/api/analytics/trends.js"
-    },
-    {
-      "src": "/api/analytics/top-categories",
-      "dest": "/api/analytics/top-categories.js"
-    },
-    {
-      "src": "/api/analytics/forecast",
-      "dest": "/api/analytics/forecast.js"
-    },
-    {
-      "src": "/api/recommendations/savings",
-      "dest": "/api/recommendations/savings.js"
+      "src": "/api/recommendations",
+      "dest": "/api/recommendations.js"
     },
     {
       "src": "/(.*)",
