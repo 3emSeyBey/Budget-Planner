@@ -35,7 +35,7 @@
     <!-- Navigation -->
     <nav class="navbar navbar-expand-lg navbar-dark bg-primary fixed-top">
         <div class="container">
-            <a class="navbar-brand" href="#">
+            <a class="navbar-brand" href="#dashboard" data-section="dashboard">
                 <i class="fas fa-wallet me-2"></i>Smart Budget Planner
             </a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
@@ -195,9 +195,28 @@
                                             <input type="number" class="form-control" id="quick-amount" step="0.01" required>
                                         </div>
                                     </div>
-                                    <div class="mb-3">
-                                        <label class="form-label">Description</label>
-                                        <input type="text" class="form-control" id="quick-description" placeholder="What did you spend on?">
+                                    <div class="row">
+                                        <div class="col-md-4 mb-3">
+                                            <label class="form-label">Payment Method</label>
+                                            <select class="form-select" id="quick-payment-method" required>
+                                                <option value="">Select Payment Method</option>
+                                                <option value="Cash">Cash</option>
+                                                <option value="Credit Card">Credit Card</option>
+                                                <option value="Debit Card">Debit Card</option>
+                                                <option value="GCash">GCash</option>
+                                                <option value="PayMaya">PayMaya</option>
+                                                <option value="Bank Transfer">Bank Transfer</option>
+                                                <option value="Other">Other</option>
+                                            </select>
+                                        </div>
+                                        <div class="col-md-4 mb-3">
+                                            <label class="form-label">Location</label>
+                                            <input type="text" class="form-control" id="quick-location" placeholder="Where did you spend?">
+                                        </div>
+                                        <div class="col-md-4 mb-3">
+                                            <label class="form-label">Description</label>
+                                            <input type="text" class="form-control" id="quick-description" placeholder="What did you spend on?">
+                                        </div>
                                     </div>
                                     <button type="submit" class="btn btn-primary w-100">
                                         <i class="fas fa-plus me-2"></i>Add Expense

@@ -160,10 +160,11 @@ class BudgetPlanner {
         // Clear existing options
         selector.innerHTML = '';
         
-        // Start from September 1, 2025
-        const startDate = new Date(2025, 8, 1); // September 1, 2025 (month is 0-indexed)
+        // Start from 6 months ago to ensure we have current dates
+        const startDate = new Date();
+        startDate.setMonth(startDate.getMonth() - 6);
         
-        // Find the first Wednesday of September 2025
+        // Find the first Wednesday from the start date
         let firstWednesday = new Date(startDate);
         while (firstWednesday.getDay() !== 3) { // 3 = Wednesday
             firstWednesday.setDate(firstWednesday.getDate() + 1);
@@ -754,8 +755,10 @@ class BudgetPlanner {
         const categoryId = document.getElementById('quick-category').value;
         const amount = document.getElementById('quick-amount').value;
         const description = document.getElementById('quick-description').value;
+        const paymentMethod = document.getElementById('quick-payment-method').value;
+        const location = document.getElementById('quick-location').value;
 
-        if (!date || !categoryId || !amount) {
+        if (!date || !categoryId || !amount || !paymentMethod) {
             this.showAlert('warning', 'Please fill in all required fields');
             return;
         }
@@ -770,7 +773,8 @@ class BudgetPlanner {
                 category_id: categoryId,
                 amount: amount,
                 description: description,
-                payment_method: 'Cash'
+                payment_method: paymentMethod,
+                location: location
             });
 
             this.showAlert('success', 'Expense added successfully!');
@@ -785,7 +789,15 @@ class BudgetPlanner {
     getWeekDateForExpense(expenseDate) {
         // Calculate which Wednesday this expense belongs to
         const dayOfWeek = expenseDate.getDay();
-        const daysToWednesday = (dayOfWeek + 4) % 7;
+        // Wednesday is day 3, so we need to find the Wednesday of the current week
+        let daysToWednesday;
+        if (dayOfWeek >= 3) {
+            // If it's Wednesday or later in the week, use the current week's Wednesday
+            daysToWednesday = dayOfWeek - 3;
+        } else {
+            // If it's before Wednesday, use the previous week's Wednesday
+            daysToWednesday = dayOfWeek + 4;
+        }
         const wednesday = new Date(expenseDate);
         wednesday.setDate(expenseDate.getDate() - daysToWednesday);
         return this.formatDateForAPI(wednesday);
@@ -1214,11 +1226,16 @@ class BudgetPlanner {
         }
 
         try {
-            await this.apiCall(`expenses?type=delete&id=${expenseId}`, 'DELETE');
-            this.showAlert('success', 'Expense deleted successfully!');
-            this.loadExpenses();
+            const response = await this.apiCall(`expenses?type=delete&id=${expenseId}`, 'DELETE');
+            if (response.success) {
+                this.showAlert('success', 'Expense deleted successfully!');
+                this.loadExpenses();
+            } else {
+                this.showAlert('error', response.message || 'Failed to delete expense. Please try again.');
+            }
         } catch (error) {
             console.error('Failed to delete expense:', error);
+            this.showAlert('error', 'Failed to delete expense. Please try again.');
         }
     }
 
