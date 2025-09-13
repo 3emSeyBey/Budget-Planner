@@ -5,6 +5,10 @@ const cors = require('cors');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+// Log environment info
+console.log('Environment:', process.env.NODE_ENV || 'development');
+console.log('Platform:', process.env.RENDER ? 'Render' : 'Local');
+
 // Middleware
 app.use(cors());
 app.use(express.json());

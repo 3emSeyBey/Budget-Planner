@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "vercel dev",
     "build": "echo 'No build step required'",
-    "start": "node server.js"
+    "start": "node server.js",
+    "render-postbuild": "npm install"
   },
   "dependencies": {
     "@capacitor/android": "^7.4.3",
