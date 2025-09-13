@@ -17,6 +17,7 @@ class BudgetPlanner {
     init() {
         this.setupEventListeners();
         this.setupCurrentWeekTracking();
+        this.setupWeekSelector();
         this.loadCategories();
         this.loadDashboard();
         this.setupDateInputs();
@@ -108,19 +109,27 @@ class BudgetPlanner {
         const today = new Date();
         const currentWeek = this.getCurrentWeek();
         
-        // Set default dates
-        document.getElementById('budget-week-selector').value = currentWeek;
-        document.getElementById('expense-date').value = today.toISOString().split('T')[0];
-        document.getElementById('expense-date-filter').value = currentWeek;
+        // Set default dates - check if elements exist first
+        const budgetWeekSelector = document.getElementById('budget-week-selector');
+        if (budgetWeekSelector) {
+            budgetWeekSelector.value = currentWeek;
+        }
+        
+        const quickDateInput = document.getElementById('quick-date');
+        if (quickDateInput) {
+            quickDateInput.value = today.toISOString().split('T')[0];
+        }
+        
+        const expenseWeekStart = document.getElementById('expense-week-start');
+        if (expenseWeekStart) {
+            expenseWeekStart.value = currentWeek;
+        }
         
         // Set default date for quick expense form (PHT timezone)
         // Use a small delay to ensure DOM is fully ready
         setTimeout(() => {
             this.setDefaultQuickExpenseDate();
         }, 100);
-        
-        // Setup week selector with week numbers
-        this.setupWeekSelector();
     }
 
     getCurrentWeek() {

@@ -21,6 +21,7 @@ app.use('/api/budget', require('./api/budget'));
 app.use('/api/expenses', require('./api/expenses'));
 app.use('/api/analytics', require('./api/analytics'));
 app.use('/api/smart', require('./api/smart'));
+app.use('/api/recommendations', require('./api/recommendations'));
 app.use('/api/setup', require('./api/setup'));
 
 app.listen(PORT, () => {

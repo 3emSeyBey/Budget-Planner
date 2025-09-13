@@ -914,72 +914,63 @@ canvas {
 
 /* Action Plan Dropdown Styling */
 .action-plan-select {
-    border: 2px solid #dee2e6;
+    border: 2px solid var(--border-color);
     border-radius: 6px;
     transition: all 0.3s ease;
+    background-color: var(--bg-secondary);
+    color: var(--text-primary);
 }
 
 .action-plan-select:focus {
     border-color: var(--primary-color);
-    box-shadow: 0 0 0 0.2rem rgba(0,123,255,0.25);
+    box-shadow: 0 0 0 0.2rem rgba(99, 102, 241, 0.25);
+    background-color: var(--bg-secondary);
+    color: var(--text-primary);
 }
 
 /* Spend option styling */
 .action-plan-select option[value="spend"] {
-    background-color: #d4edda;
-    color: #0d4a1a;
+    background-color: var(--success-color);
+    color: white;
     font-weight: 700;
 }
 
 .action-plan-select option[value="spend"]:checked {
-    background-color: #28a745;
-    color: #000000;
+    background-color: var(--success-color);
+    color: white;
     font-weight: 700;
 }
 
 /* Save option styling */
 .action-plan-select option[value="save"] {
-    background-color: #fff3cd;
-    color: #6c4a00;
+    background-color: var(--warning-color);
+    color: white;
     font-weight: 700;
 }
 
 .action-plan-select option[value="save"]:checked {
-    background-color: #ffc107;
-    color: #000000;
+    background-color: var(--warning-color);
+    color: white;
     font-weight: 700;
 }
 
 /* Dynamic styling based on selected value */
 .action-plan-select[data-selected="spend"] {
-    background-color: #d4edda;
-    border-color: #28a745;
-    color: #000000 !important;
+    background-color: var(--success-color);
+    border-color: var(--success-color);
+    color: white !important;
     font-weight: 700;
 }
 
 .action-plan-select[data-selected="save"] {
-    background-color: #fff3cd;
-    border-color: #ffc107;
-    color: #000000 !important;
+    background-color: var(--warning-color);
+    border-color: var(--warning-color);
+    color: white !important;
     font-weight: 700;
 }
 
-/* Force black text for all action plan selects */
-.action-plan-select {
-    color: #000000 !important;
-}
 
-.action-plan-select option {
-    color: #000000 !important;
-    background-color: #ffffff;
-}
 
-/* Specific styling for selected options */
-.action-plan-select option:checked {
-    color: #000000 !important;
-    background-color: #ffffff;
-}
 
 /* Print Styles */
 @media print {
