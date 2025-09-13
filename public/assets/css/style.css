@@ -954,15 +954,31 @@ canvas {
 .action-plan-select[data-selected="spend"] {
     background-color: #d4edda;
     border-color: #28a745;
-    color: #0d4a1a;
+    color: #000000 !important;
     font-weight: 700;
 }
 
 .action-plan-select[data-selected="save"] {
     background-color: #fff3cd;
     border-color: #ffc107;
-    color: #6c4a00;
+    color: #000000 !important;
     font-weight: 700;
+}
+
+/* Force black text for all action plan selects */
+.action-plan-select {
+    color: #000000 !important;
+}
+
+.action-plan-select option {
+    color: #000000 !important;
+    background-color: #ffffff;
+}
+
+/* Specific styling for selected options */
+.action-plan-select option:checked {
+    color: #000000 !important;
+    background-color: #ffffff;
 }
 
 /* Print Styles */
