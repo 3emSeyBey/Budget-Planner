@@ -32,7 +32,8 @@ class MobileBudgetPlanner {
     initMobileFeatures() {
         // Add mobile-specific UI enhancements
         this.addMobileStyles();
-        this.setupTouchGestures();
+        // Disabled swipe gestures for navigation
+        // this.setupTouchGestures();
         this.setupOfflineIndicator();
     }
 

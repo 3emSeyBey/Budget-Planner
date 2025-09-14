@@ -11,6 +11,12 @@ class BudgetPlanner {
         this.expenseData = [];
         this.charts = {};
         
+        // Pagination properties
+        this.currentPage = 1;
+        this.itemsPerPage = 25;
+        this.totalExpenses = 0;
+        this.filteredExpenses = [];
+        
         this.init();
     }
 
@@ -54,6 +60,15 @@ class BudgetPlanner {
 
         document.getElementById('current-week-btn').addEventListener('click', () => {
             this.loadCurrentWeekExpenses();
+        });
+
+        document.getElementById('clear-filters-btn').addEventListener('click', () => {
+            this.clearExpenseFilters();
+        });
+
+        document.getElementById('expense-per-page').addEventListener('change', () => {
+            this.currentPage = 1; // Reset to first page
+            this.loadExpensesByDateRange();
         });
 
         // Budget management
@@ -483,17 +498,26 @@ class BudgetPlanner {
         const selects = [
             'quick-category',
             'expense-category',
-            'edit-expense-category'
+            'edit-expense-category',
+            'expense-category-filter'
         ];
 
         selects.forEach(selectId => {
             const select = document.getElementById(selectId);
             if (select) {
-                select.innerHTML = '<option value="">Select Category</option>';
+                if (selectId === 'expense-category-filter') {
+                    select.innerHTML = '<option value="">All Categories</option>';
+                } else {
+                    select.innerHTML = '<option value="">Select Category</option>';
+                }
                 this.categories.forEach(category => {
                     const option = document.createElement('option');
                     option.value = category.id;
-                    option.textContent = `${category.name} (${category.bank})`;
+                    if (selectId === 'expense-category-filter') {
+                        option.textContent = category.name;
+                    } else {
+                        option.textContent = `${category.name} (${category.bank})`;
+                    }
                     select.appendChild(option);
                 });
             }
@@ -856,7 +880,10 @@ class BudgetPlanner {
 
         try {
             const expenses = await this.apiCall(`expenses?type=range&start=${startDate}&end=${endDate}`);
-            this.displayExpenses(expenses);
+            this.filteredExpenses = this.applyFilters(expenses);
+            this.totalExpenses = this.filteredExpenses.length;
+            this.itemsPerPage = parseInt(document.getElementById('expense-per-page').value);
+            this.displayExpensesWithPagination();
         } catch (error) {
             console.error('Failed to load expenses:', error);
             this.showAlert('error', 'Failed to load expenses. Please try again.');
@@ -1156,6 +1183,130 @@ class BudgetPlanner {
             `;
             tbody.appendChild(row);
         });
+    }
+
+    applyFilters(expenses) {
+        const categoryFilter = document.getElementById('expense-category-filter').value;
+        const paymentFilter = document.getElementById('expense-payment-filter').value;
+
+        return expenses.filter(expense => {
+            const categoryMatch = !categoryFilter || expense.category_id == categoryFilter;
+            const paymentMatch = !paymentFilter || expense.payment_method === paymentFilter;
+            
+            return categoryMatch && paymentMatch;
+        });
+    }
+
+    displayExpensesWithPagination() {
+        const startIndex = (this.currentPage - 1) * this.itemsPerPage;
+        const endIndex = startIndex + this.itemsPerPage;
+        const pageExpenses = this.filteredExpenses.slice(startIndex, endIndex);
+
+        this.displayExpenses(pageExpenses);
+        this.updatePaginationInfo();
+        this.generatePagination();
+        this.updateExpenseCount();
+    }
+
+    updatePaginationInfo() {
+        const startIndex = (this.currentPage - 1) * this.itemsPerPage + 1;
+        const endIndex = Math.min(this.currentPage * this.itemsPerPage, this.totalExpenses);
+        
+        const paginationInfo = document.getElementById('pagination-info');
+        if (paginationInfo) {
+            if (this.totalExpenses === 0) {
+                paginationInfo.textContent = 'Showing 0 to 0 of 0 entries';
+            } else {
+                paginationInfo.textContent = `Showing ${startIndex} to ${endIndex} of ${this.totalExpenses} entries`;
+            }
+        }
+    }
+
+    generatePagination() {
+        const pagination = document.getElementById('expense-pagination');
+        if (!pagination) return;
+
+        const totalPages = Math.ceil(this.totalExpenses / this.itemsPerPage);
+        pagination.innerHTML = '';
+
+        if (totalPages <= 1) return;
+
+        // Previous button
+        const prevLi = document.createElement('li');
+        prevLi.className = `page-item ${this.currentPage === 1 ? 'disabled' : ''}`;
+        prevLi.innerHTML = `<a class="page-link" href="#" onclick="budgetPlanner.goToPage(${this.currentPage - 1})">Previous</a>`;
+        pagination.appendChild(prevLi);
+
+        // Page numbers
+        const startPage = Math.max(1, this.currentPage - 2);
+        const endPage = Math.min(totalPages, this.currentPage + 2);
+
+        if (startPage > 1) {
+            const firstLi = document.createElement('li');
+            firstLi.className = 'page-item';
+            firstLi.innerHTML = `<a class="page-link" href="#" onclick="budgetPlanner.goToPage(1)">1</a>`;
+            pagination.appendChild(firstLi);
+
+            if (startPage > 2) {
+                const ellipsisLi = document.createElement('li');
+                ellipsisLi.className = 'page-item disabled';
+                ellipsisLi.innerHTML = '<span class="page-link">...</span>';
+                pagination.appendChild(ellipsisLi);
+            }
+        }
+
+        for (let i = startPage; i <= endPage; i++) {
+            const li = document.createElement('li');
+            li.className = `page-item ${i === this.currentPage ? 'active' : ''}`;
+            li.innerHTML = `<a class="page-link" href="#" onclick="budgetPlanner.goToPage(${i})">${i}</a>`;
+            pagination.appendChild(li);
+        }
+
+        if (endPage < totalPages) {
+            if (endPage < totalPages - 1) {
+                const ellipsisLi = document.createElement('li');
+                ellipsisLi.className = 'page-item disabled';
+                ellipsisLi.innerHTML = '<span class="page-link">...</span>';
+                pagination.appendChild(ellipsisLi);
+            }
+
+            const lastLi = document.createElement('li');
+            lastLi.className = 'page-item';
+            lastLi.innerHTML = `<a class="page-link" href="#" onclick="budgetPlanner.goToPage(${totalPages})">${totalPages}</a>`;
+            pagination.appendChild(lastLi);
+        }
+
+        // Next button
+        const nextLi = document.createElement('li');
+        nextLi.className = `page-item ${this.currentPage === totalPages ? 'disabled' : ''}`;
+        nextLi.innerHTML = `<a class="page-link" href="#" onclick="budgetPlanner.goToPage(${this.currentPage + 1})">Next</a>`;
+        pagination.appendChild(nextLi);
+    }
+
+    goToPage(page) {
+        const totalPages = Math.ceil(this.totalExpenses / this.itemsPerPage);
+        if (page >= 1 && page <= totalPages && page !== this.currentPage) {
+            this.currentPage = page;
+            this.displayExpensesWithPagination();
+        }
+    }
+
+    updateExpenseCount() {
+        const expenseCount = document.getElementById('expense-count');
+        if (expenseCount) {
+            expenseCount.textContent = `${this.totalExpenses} expense${this.totalExpenses !== 1 ? 's' : ''}`;
+        }
+    }
+
+    clearExpenseFilters() {
+        document.getElementById('expense-category-filter').value = '';
+        document.getElementById('expense-payment-filter').value = '';
+        document.getElementById('expense-week-start').value = '';
+        document.getElementById('expense-week-end').value = '';
+        
+        // Reload expenses with cleared filters
+        this.currentPage = 1;
+        this.loadExpensesByDateRange();
     }
 
     async editExpense(expenseId, date, categoryId, amount, description, paymentMethod, location) {

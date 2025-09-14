@@ -677,6 +677,62 @@ canvas {
     margin-right: 0.5rem;
 }
 
+/* Expense Filter Layout */
+.expense-filters .row.g-3 > div {
+    margin-bottom: 1rem;
+}
+
+.expense-filters .form-label {
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    color: var(--text-primary);
+}
+
+.expense-filters .btn {
+    margin-bottom: 0.5rem;
+}
+
+/* Pagination Styles */
+.pagination {
+    margin-bottom: 0;
+}
+
+.pagination .page-link {
+    color: var(--text-primary);
+    background-color: var(--bg-secondary);
+    border-color: var(--border-color);
+    padding: 0.375rem 0.75rem;
+    font-size: 0.875rem;
+}
+
+.pagination .page-link:hover {
+    color: var(--text-primary);
+    background-color: var(--bg-tertiary);
+    border-color: var(--border-color);
+}
+
+.pagination .page-item.active .page-link {
+    background-color: var(--primary-color);
+    border-color: var(--primary-color);
+    color: white;
+}
+
+.pagination .page-item.disabled .page-link {
+    color: var(--text-muted);
+    background-color: var(--bg-secondary);
+    border-color: var(--border-color);
+}
+
+.pagination-info {
+    font-size: 0.875rem;
+}
+
+/* Expense per page selector */
+#expense-per-page {
+    width: auto;
+    min-width: 120px;
+}
+
 /* Mobile Responsiveness */
 @media (max-width: 768px) {
     body {
@@ -710,6 +766,26 @@ canvas {
         -webkit-overflow-scrolling: touch;
     }
     
+    /* Mobile filter layout - stack vertically */
+    .expense-filters .row.g-3 {
+        flex-direction: column;
+    }
+    
+    .expense-filters .row.g-3 > div {
+        width: 100%;
+        margin-bottom: 1rem;
+    }
+    
+    .expense-filters .d-flex.gap-2 {
+        flex-direction: column;
+        gap: 0.5rem !important;
+    }
+    
+    .expense-filters .btn {
+        width: 100%;
+        margin-bottom: 0.5rem;
+    }
+    
     /* Fix expense table mobile layout */
     #expenses-table {
         min-width: 600px;
@@ -738,6 +814,21 @@ canvas {
         background-color: var(--bg-secondary);
         z-index: 10;
         min-width: 100px;
+    }
+    
+    /* Mobile pagination */
+    .pagination {
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+    
+    .pagination .page-item {
+        margin: 0.125rem;
+    }
+    
+    .pagination .page-link {
+        padding: 0.25rem 0.5rem;
+        font-size: 0.8rem;
     }
     
     /* Fix burger menu positioning */
