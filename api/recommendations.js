@@ -2,7 +2,7 @@
  * Vercel serverless function for recommendations
  */
 
-const { query } = require('../lib/database');
+const { queryBuilder } = require('../lib/database');
 
 module.exports = async (req, res) => {
   // Set CORS headers
@@ -54,41 +54,57 @@ module.exports = async (req, res) => {
 
 async function getSavingsRecommendations() {
   try {
-    // Get non-essential spending data from the last 4 weeks
-    const sql = `
-      SELECT 
-        bc.id as category_id,
-        bc.name as category_name,
-        bc.priority_order,
-        AVG(e.amount) as avg_spending,
-        COUNT(e.id) as frequency,
-        SUM(e.amount) as total_spent
-      FROM expenses e
-      JOIN budget_categories bc ON e.category_id = bc.id
-      WHERE e.week_date >= date('now', '-4 weeks')
-      AND bc.is_essential = 0
-      GROUP BY bc.id, bc.name, bc.priority_order
-      HAVING avg_spending > 100
-      ORDER BY total_spent DESC
-    `;
+    // Get non-essential categories and recent expenses
+    const categories = await queryBuilder.getBudgetCategories();
+    const nonEssentialCategories = categories.filter(cat => !cat.is_essential);
     
-    const nonEssentialSpending = await query(sql);
+    // Get expenses from the last 4 weeks
+    const fourWeeksAgo = new Date();
+    fourWeeksAgo.setDate(fourWeeksAgo.getDate() - 28);
+    const fourWeeksAgoStr = fourWeeksAgo.toISOString().split('T')[0];
+    
+    const allExpenses = await queryBuilder.getExpenses();
+    const recentExpenses = allExpenses.filter(expense => expense.week_date >= fourWeeksAgoStr);
+    
+    // Calculate spending by category
+    const categorySpending = {};
+    recentExpenses.forEach(expense => {
+      if (!categorySpending[expense.category_id]) {
+        categorySpending[expense.category_id] = {
+          total: 0,
+          count: 0,
+          category: expense.budget_categories
+        };
+      }
+      categorySpending[expense.category_id].total += parseFloat(expense.amount);
+      categorySpending[expense.category_id].count += 1;
+    });
     
     const recommendations = [];
-    for (const category of nonEssentialSpending) {
-      const potentialSavings = category.avg_spending * 0.2; // 20% reduction
-      if (potentialSavings > 50) {
-        recommendations.push({
-          category_id: category.category_id,
-          category_name: category.category_name,
-          current_spending: Math.round(category.avg_spending),
-          potential_savings: Math.round(potentialSavings),
-          frequency: category.frequency,
-          recommendation: `Reduce ${category.category_name} spending by 20% to save ₱${Math.round(potentialSavings)} per week`,
-          priority: 'medium'
-        });
+    
+    // Generate recommendations for non-essential categories with significant spending
+    nonEssentialCategories.forEach(category => {
+      const spending = categorySpending[category.id];
+      if (spending && spending.total > 0) {
+        const avgSpending = spending.total / Math.max(spending.count, 1);
+        const potentialSavings = avgSpending * 0.2; // 20% reduction
+        
+        if (potentialSavings > 50) {
+          recommendations.push({
+            category_id: category.id,
+            category_name: category.name,
+            current_spending: Math.round(avgSpending),
+            potential_savings: Math.round(potentialSavings),
+            frequency: spending.count,
+            recommendation: `Reduce ${category.name} spending by 20% to save ₱${Math.round(potentialSavings)} per week`,
+            priority: 'medium'
+          });
+        }
       }
-    }
+    });
+    
+    // Sort by potential savings
+    recommendations.sort((a, b) => b.potential_savings - a.potential_savings);
     
     // If no spending data, provide general recommendations
     if (recommendations.length === 0) {

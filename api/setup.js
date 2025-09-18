@@ -2,7 +2,7 @@
  * Vercel serverless function for database setup
  */
 
-const { query } = require('../lib/database');
+const { queryBuilder } = require('../lib/database');
 const fs = require('fs');
 const path = require('path');
 
@@ -22,151 +22,57 @@ module.exports = async (req, res) => {
 
   try {
     if (req.method === 'POST') {
-      // Check if DATABASE_URL is set
-      if (!process.env.DATABASE_URL) {
+      // Check if Supabase environment variables are set
+      if (!process.env.SUPABASE_URL || !process.env.SUPABASE_ANON_KEY) {
         return res.status(500).json({
           success: false,
-          message: 'DATABASE_URL environment variable is not set. Please configure your database connection in Vercel.'
+          message: 'Supabase environment variables are not set. Please configure SUPABASE_URL and SUPABASE_ANON_KEY.'
         });
       }
 
-      // Read and execute database schema
-      const schemaPath = path.join(__dirname, '../lib/database-schema.sql');
-      
-      if (!fs.existsSync(schemaPath)) {
-        return res.status(500).json({
-          success: false,
-          message: 'Database schema file not found. Please check your deployment.'
-        });
-      }
-
-      const schema = fs.readFileSync(schemaPath, 'utf8');
-      
-      // Split SQL into individual statements and clean them
-      const statements = schema
-        .split(';')
-        .map(stmt => stmt.trim())
-        .filter(stmt => stmt.length > 0 && !stmt.startsWith('--') && !stmt.startsWith('/*'))
-        .map(stmt => stmt.replace(/\s+/g, ' ').trim());
-      
-      console.log(`Found ${statements.length} SQL statements to execute`);
-      console.log('First few statements:', statements.slice(0, 3));
-      
-      // Debug: Show all statements
-      statements.forEach((stmt, index) => {
-        console.log(`Statement ${index + 1}: ${stmt.substring(0, 100)}...`);
-      });
-      
-      // Log the raw schema for debugging
-      console.log('Raw schema length:', schema.length);
-      console.log('Schema preview:', schema.substring(0, 200));
+      console.log('Verifying Supabase connection and tables...');
       
       // Initialize error tracking
       let errors = [];
       let warnings = [];
-      let executedStatements = 0;
       
-      // First, ensure we're using the correct database
+      // Test database connection by trying to read from tables
       try {
-        const dbName = process.env.DB_NAME || 'test';
-        await query(`USE ${dbName}`);
-        console.log(`Using database: ${dbName}`);
-      } catch (dbError) {
-        console.warn('Could not select database, continuing with current database:', dbError.message);
-      }
-      
-      // Test a simple CREATE TABLE to verify database permissions
-      try {
-        console.log('Testing simple CREATE TABLE...');
-        await query(`
-          CREATE TABLE IF NOT EXISTS test_setup_table (
-            id INT PRIMARY KEY AUTO_INCREMENT,
-            test_field VARCHAR(50)
-          )
-        `);
-        console.log('Simple CREATE TABLE test: SUCCESS');
-        
-        // Clean up test table
-        await query('DROP TABLE IF EXISTS test_setup_table');
-        console.log('Test table cleaned up');
-      } catch (testError) {
-        console.error('Simple CREATE TABLE test failed:', testError.message);
-        errors.push(`Database permissions test failed: ${testError.message}`);
-      }
-      
-      // Test executing one of the actual schema statements manually
-      if (statements.length > 0) {
-        try {
-          console.log('Testing first schema statement manually...');
-          console.log('Statement to test:', statements[0]);
-          await query(statements[0]);
-          console.log('First schema statement test: SUCCESS');
-        } catch (schemaError) {
-          console.error('First schema statement test failed:', schemaError.message);
-          errors.push(`Schema statement test failed: ${schemaError.message}`);
-        }
-      }
-      
-      
-      for (let i = 0; i < statements.length; i++) {
-        const statement = statements[i];
-        if (!statement) continue;
-        
-        try {
-          console.log(`Executing statement ${i + 1}: ${statement.substring(0, 50)}...`);
-          await query(statement);
-          executedStatements++;
-          console.log(`Statement ${i + 1} executed successfully`);
-        } catch (error) {
-          console.error(`Error executing statement ${i + 1}:`, error.message);
-          console.error(`Statement: ${statement}`);
-          
-          // Check if it's a "table already exists" error (which is OK)
-          if (error.message.includes('already exists') || 
-              error.message.includes('Duplicate entry') ||
-              error.message.includes('Table') && error.message.includes('already exists')) {
-            warnings.push(`Statement ${i + 1}: ${error.message}`);
-            console.log(`Statement ${i + 1} skipped (already exists)`);
-          } else {
-            errors.push(`Statement ${i + 1}: ${error.message}`);
-            console.error(`Statement ${i + 1} failed:`, error.message);
-          }
-        }
-      }
-      
-      console.log(`Schema execution completed: ${executedStatements} statements executed, ${errors.length} errors, ${warnings.length} warnings`);
-      
-      // Check current database first
-      try {
-        const dbResult = await query('SELECT DATABASE() as current_db');
-        console.log('Current database:', dbResult[0]?.Database || dbResult[0]?.current_db);
-      } catch (dbError) {
-        console.error('Error getting current database:', dbError.message);
+        console.log('Testing database connection...');
+        const categories = await queryBuilder.getBudgetCategories();
+        console.log(`✅ Database connection successful. Found ${categories.length} budget categories.`);
+      } catch (connectionError) {
+        console.error('Database connection test failed:', connectionError.message);
+        errors.push(`Database connection failed: ${connectionError.message}`);
       }
 
-      // Verify tables were created
+      // Verify tables exist and are accessible
       const tableCheck = await verifyTables();
       console.log('Table verification result:', tableCheck);
       
-      // Only initialize current week budget if tables were created successfully
+      // Initialize current week budget if tables are accessible
       if (tableCheck.weekly_budgets && tableCheck.budget_categories) {
         console.log('Tables verified, initializing current week budget...');
-        await initializeCurrentWeek();
+        try {
+          await initializeCurrentWeek();
+          console.log('✅ Current week budget initialized successfully.');
+        } catch (initError) {
+          console.error('Failed to initialize current week budget:', initError.message);
+          warnings.push(`Current week initialization failed: ${initError.message}`);
+        }
       } else {
-        console.warn('Tables not created successfully, skipping current week initialization');
-        errors.push('Tables were not created successfully - check database permissions and connection');
+        console.warn('Tables not accessible, skipping current week initialization');
+        errors.push('Tables were not accessible - check database permissions and connection');
       }
       
       // Determine if setup was successful
-      const setupSuccessful = executedStatements > 0 && tableCheck.weekly_budgets && tableCheck.budget_categories;
+      const setupSuccessful = tableCheck.weekly_budgets && tableCheck.budget_categories;
       
       res.status(setupSuccessful ? 200 : 500).json({
         success: setupSuccessful,
         message: setupSuccessful 
-          ? `Database setup completed successfully. ${executedStatements} statements executed.`
-          : `Database setup failed. ${executedStatements} statements executed, but tables were not created properly.`,
-        statements_executed: executedStatements,
-        total_statements: statements.length,
+          ? 'Database setup verification completed successfully. All tables are accessible.'
+          : 'Database setup verification failed. Some tables are not accessible.',
         table_verification: tableCheck,
         errors: errors.length > 0 ? errors : undefined,
         warnings: warnings.length > 0 ? warnings : undefined
@@ -203,10 +109,9 @@ async function initializeCurrentWeek() {
   }
   
   // Check if current week budget exists
-  const checkSql = 'SELECT COUNT(*) as count FROM weekly_budgets WHERE week_date = ?';
-  const result = await query(checkSql, [currentWeek]);
+  const existingBudgets = await queryBuilder.getWeeklyBudgets(currentWeek);
   
-  if (result[0].count === 0) {
+  if (existingBudgets.length === 0) {
     // Create default budget for current week
     const defaultBudget = [
       { categoryId: 1, amount: 750, actionPlan: 'spend' },   // Phone
@@ -223,11 +128,14 @@ async function initializeCurrentWeek() {
     ];
     
     for (const allocation of defaultBudget) {
-      const insertSql = `
-        INSERT INTO weekly_budgets (week_date, category_id, planned_amount, action_plan, status) 
-        VALUES (?, ?, ?, ?, 'active')
-      `;
-      await query(insertSql, [currentWeek, allocation.categoryId, allocation.amount, allocation.actionPlan]);
+      const budgetData = {
+        week_date: currentWeek,
+        category_id: allocation.categoryId,
+        planned_amount: allocation.amount,
+        action_plan: allocation.actionPlan,
+        status: 'active'
+      };
+      await queryBuilder.insertWeeklyBudget(budgetData);
     }
   }
 }
@@ -239,9 +147,38 @@ async function verifyTables() {
     
     for (const table of tables) {
       try {
-        const result = await query(`SHOW TABLES LIKE '${table}'`);
-        results[table] = result.length > 0;
-        console.log(`Table ${table}: ${result.length > 0 ? 'EXISTS' : 'NOT FOUND'}`);
+        // Test each table by trying to read from it
+        switch (table) {
+          case 'budget_categories':
+            await queryBuilder.getBudgetCategories();
+            results[table] = true;
+            break;
+          case 'weekly_budgets':
+            await queryBuilder.getWeeklyBudgets();
+            results[table] = true;
+            break;
+          case 'expenses':
+            await queryBuilder.getExpenses();
+            results[table] = true;
+            break;
+          case 'budget_adjustments':
+            await queryBuilder.getBudgetAdjustments();
+            results[table] = true;
+            break;
+          case 'savings_goals':
+            await queryBuilder.getSavingsGoals();
+            results[table] = true;
+            break;
+          case 'weekly_summaries':
+            // Test with a specific date
+            const testDate = new Date().toISOString().split('T')[0];
+            await queryBuilder.getWeeklySummary(testDate);
+            results[table] = true;
+            break;
+          default:
+            results[table] = false;
+        }
+        console.log(`Table ${table}: EXISTS`);
       } catch (error) {
         results[table] = false;
         console.error(`Error checking table ${table}:`, error.message);
