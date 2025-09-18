@@ -7,7 +7,10 @@
     "dev": "vercel dev",
     "build": "echo 'No build step required'",
     "start": "node server.js",
-    "render-postbuild": "npm install"
+    "render-postbuild": "npm install",
+    "test:supabase": "node test-supabase-connection.js",
+    "setup": "node setup-supabase.js",
+    "db:setup": "npm run setup"
   },
   "dependencies": {
     "@capacitor/android": "^7.4.3",
@@ -17,16 +20,15 @@
     "@capacitor/haptics": "^7.0.2",
     "@capacitor/splash-screen": "^7.0.3",
     "@capacitor/status-bar": "^7.0.3",
+    "@supabase/supabase-js": "^2.57.4",
     "@vercel/node": "^3.0.0",
     "bcryptjs": "^2.4.3",
-    "better-sqlite3": "^12.2.0",
     "cors": "^2.8.5",
     "dotenv": "^16.3.1",
     "express": "^4.18.2",
     "helmet": "^7.0.0",
     "jsonwebtoken": "^9.0.2",
-    "mysql2": "^3.6.0",
-    "sqlite3": "^5.1.7"
+    "mysql2": "^3.6.0"
   },
   "devDependencies": {
     "vercel": "^32.0.0"
